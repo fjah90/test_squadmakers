@@ -6,7 +6,7 @@ namespace JokesApi.Tests;
 
 public class MathControllerTests
 {
-    private readonly MatematicasController _controller = new();
+    private readonly MathController _controller = new(Microsoft.Extensions.Logging.Abstractions.NullLogger<MathController>.Instance);
 
     [Fact]
     public void Lcm_ReturnsExpectedValue()
