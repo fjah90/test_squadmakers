@@ -160,3 +160,54 @@ Exercises1_2/
 
 ---
 © 2025 SquadMakers – All rights reserved. 
+
+## Guía Rápida en Español
+Las siguientes instrucciones están destinadas a usuarios finales que deseen probar la API sin profundizar en detalles técnicos.
+
+### Requisitos
+1. .NET 8 SDK instalado
+2. PowerShell 7
+
+### Pasos para ejecutar
+```powershell
+# Clonar el repositorio (o descargar ZIP)
+cd <ruta>
+
+# Restaurar dependencias y compilar
+ dotnet restore
+ dotnet build
+
+# Crear la base de datos SQLite y aplicar migraciones
+ dotnet ef database update
+
+# Ejecutar la API
+ dotnet run -p JokesApi/JokesApi.csproj
+```
+La API quedará disponible en `https://localhost:7070`.
+
+### Variables de entorno
+Crea/edita el archivo `appsettings.Development.json` y reemplaza los valores marcados con `<>`.
+```jsonc
+{
+  "JwtSettings": {
+    "SecretKey": "<CLAVE_SUPER_SECRETA>"
+  },
+  "Authentication": {
+    "Google": {
+      "ClientId": "<GOOGLE_ID>",
+      "ClientSecret": "<GOOGLE_SECRET>"
+    },
+    "GitHub": {
+      "ClientId": "<GITHUB_ID>",
+      "ClientSecret": "<GITHUB_SECRET>"
+    }
+  }
+}
+```
+
+### Uso de Swagger
+1. Abre tu navegador en `https://localhost:7070/swagger`.
+2. Explora los endpoints disponibles.
+3. Para los endpoints protegidos, presiona **Authorize** e ingresa un JWT válido (se obtiene en `/api/auth/login`).
+
+¡Listo! Ahora puedes probar los servicios de autenticación, gestión de chistes y notificaciones directamente desde la interfaz Swagger. 
