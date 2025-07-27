@@ -10,6 +10,9 @@ namespace JokesApi.Controllers;
 
 [ApiController]
 [Route("api/users")]
+/// <summary>
+/// Manage user registration and profile endpoints.
+/// </summary>
 public class UserController : ControllerBase
 {
     private readonly AppDbContext _db;
@@ -25,6 +28,23 @@ public class UserController : ControllerBase
 
     public record RegisterRequest([Required] string Name, [Required, EmailAddress] string Email, [Required, MinLength(6)] string Password);
 
+    /// <summary>
+    /// Registers a new user. The server automatically sets the role to <c>"user"</c>.
+    /// </summary>
+    /// <param name="request">Registration data.</param>
+    /// <remarks>
+    /// Example request:
+    /// ```json
+    /// {
+    ///   "name": "Jane Doe",
+    ///   "email": "jane@example.com",
+    ///   "password": "Password123!"
+    /// }
+    /// ```
+    /// The response includes a JWT and a refresh token.
+    /// </remarks>
+    /// <response code="201">User created successfully.</response>
+    /// <response code="409">Email already registered.</response>
     [AllowAnonymous]
     [HttpPost("register")]
     public async Task<IActionResult> Register([FromBody] RegisterRequest request)
