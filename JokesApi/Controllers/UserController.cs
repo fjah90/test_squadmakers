@@ -3,20 +3,51 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using System.ComponentModel.DataAnnotations;
+using JokesApi.Services;
 
 namespace JokesApi.Controllers;
 
 [ApiController]
-[Route("api/[controller]")]
-public class UsuarioController : ControllerBase
+[Route("api/users")]
+public class UserController : ControllerBase
 {
     private readonly AppDbContext _db;
-    private readonly ILogger<UsuarioController> _logger;
+    private readonly ITokenService _tokenService;
+    private readonly ILogger<UserController> _logger;
 
-    public UsuarioController(AppDbContext db, ILogger<UsuarioController> logger)
+    public UserController(AppDbContext db, ITokenService tokenService, ILogger<UserController> logger)
     {
         _db = db;
+        _tokenService = tokenService;
         _logger = logger;
+    }
+
+    public record RegisterRequest([Required] string Name, [Required, EmailAddress] string Email, [Required, MinLength(6)] string Password);
+
+    [AllowAnonymous]
+    [HttpPost("register")]
+    public async Task<IActionResult> Register([FromBody] RegisterRequest request)
+    {
+        if (await _db.Users.AnyAsync(u => u.Email == request.Email))
+        {
+            return Conflict(new { message = "Email already registered" });
+        }
+
+        var user = new JokesApi.Entities.User
+        {
+            Id = Guid.NewGuid(),
+            Name = request.Name,
+            Email = request.Email,
+            PasswordHash = BCrypt.Net.BCrypt.HashPassword(request.Password),
+            Role = "user"
+        };
+
+        _db.Users.Add(user);
+        await _db.SaveChangesAsync();
+
+        var pair = _tokenService.CreateTokenPair(user);
+        return CreatedAtAction(nameof(GetCurrentUser), new { }, new { token = pair.Token, refreshToken = pair.RefreshToken });
     }
 
     [Authorize(Roles = "user,admin")]
