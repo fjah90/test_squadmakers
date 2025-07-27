@@ -1,0 +1,36 @@
+# .NET build artifacts
+bin/
+obj/
+
+# Visual Studio
+.vs/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+# JetBrains Rider
+.idea/
+
+# Operating system files
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+# Test & coverage outputs
+TestResults/
+coverage/
+*.coverage
+*.lcov
+coverage.*.xml
+
+# Databases
+*.db
+
+# Environment files
+.env
+
+# Others
+ReSharperReports/ 

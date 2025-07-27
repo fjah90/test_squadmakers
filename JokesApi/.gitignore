@@ -1,26 +1,2 @@
-# Build outputs
-bin/
-obj/
-
-# Visual Studio files
-.vs/
-*.user
-*.suo
-*.userosscache
-*.sln.docstates
-
-# Rider
-.idea/
-
-# OS files
-.DS_Store
-Thumbs.db
-
-# Logs
-*.log
-
-# Database
-*.db
-
-# dotenv
-.env 
+# Deprecated: patterns now defined at repository root .gitignore
+# This file kept empty intentionally. 
