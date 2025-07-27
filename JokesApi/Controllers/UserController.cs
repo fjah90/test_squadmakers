@@ -97,6 +97,24 @@ public class UserController : ControllerBase
     }
 
     [Authorize(Roles = "admin")]
+    /// <summary>
+    /// Promotes an existing user to administrator.
+    /// </summary>
+    /// <param name="id">User ID.</param>
+    /// <response code="204">User promoted.</response>
+    /// <response code="404">User not found.</response>
+    [HttpPost("{id:guid}/promote")]
+    public async Task<IActionResult> Promote(Guid id)
+    {
+        var user = await _db.Users.FirstOrDefaultAsync(u => u.Id == id);
+        if (user is null) return NotFound();
+
+        user.Role = "admin";
+        await _db.SaveChangesAsync();
+        return NoContent();
+    }
+
+    [Authorize(Roles = "admin")]
     [HttpGet("/api/admin")]
     public IActionResult AdminEndpoint()
     {
