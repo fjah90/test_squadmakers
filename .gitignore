@@ -34,3 +34,7 @@ coverage.*.xml
 
 # Others
 ReSharperReports/ 
+
+# Ignore SQLite journals
+*.db-shm
+*.db-wal 
