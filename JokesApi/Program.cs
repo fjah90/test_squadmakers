@@ -10,6 +10,9 @@ using JokesApi.Notifications;
 using AspNet.Security.OAuth.GitHub;
 using Polly;
 using Polly.Extensions.Http;
+using JokesApi.Domain.Repositories;
+using JokesApi.Infrastructure;
+using JokesApi.Infrastructure.Repositories;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -83,6 +86,11 @@ builder.Services.AddAuthentication()
         options.ClientSecret = githubClientSecret!;
         options.Scope.Add("user:email");
     });
+
+builder.Services.AddScoped<IJokeRepository, JokeRepository>();
+builder.Services.AddScoped<IThemeRepository, ThemeRepository>();
+builder.Services.AddScoped<IUserRepository, UserRepository>();
+builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 
 var app = builder.Build();
 
