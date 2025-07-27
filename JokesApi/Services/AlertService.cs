@@ -6,24 +6,22 @@ namespace JokesApi.Services;
 
 public class AlertService
 {
-    private readonly EmailNotifier _emailNotifier;
-    private readonly SmsNotifier _smsNotifier;
+    private readonly IDictionary<string, INotifier> _notifiers;
     private readonly NotificationSettings _settings;
 
-    public AlertService(EmailNotifier email, SmsNotifier sms, IOptions<NotificationSettings> options)
+    public AlertService(IEnumerable<INotifier> notifiers, IOptions<NotificationSettings> options)
     {
-        _emailNotifier = email;
-        _smsNotifier = sms;
+        _notifiers = notifiers.ToDictionary(n => n.Channel.ToLower(), n => n);
         _settings = options.Value;
     }
 
     public Task SendAsync(string recipient, string message, string? channel = null)
     {
-        channel = (channel ?? _settings.DefaultChannel).ToLower();
-        return channel switch
+        var key = (channel ?? _settings.DefaultChannel).ToLower();
+        if (!_notifiers.TryGetValue(key, out var notifier))
         {
-            "sms" => _smsNotifier.SendAsync(recipient, message),
-            _ => _emailNotifier.SendAsync(recipient, message),
-        };
+            notifier = _notifiers.Values.First(); // fallback
+        }
+        return notifier.SendAsync(recipient, message);
     }
 } 

@@ -4,6 +4,7 @@ namespace JokesApi.Notifications;
 
 public class EmailNotifier : INotifier
 {
+    public string Channel => "email";
     private readonly ILogger<EmailNotifier> _logger;
 
     public EmailNotifier(ILogger<EmailNotifier> logger)

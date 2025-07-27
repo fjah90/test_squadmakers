@@ -22,8 +22,8 @@ builder.Services.Configure<JwtSettings>(builder.Configuration.GetSection("JwtSet
 builder.Services.AddScoped<ITokenService, TokenService>();
 
 builder.Services.Configure<NotificationSettings>(builder.Configuration.GetSection("Notification"));
-builder.Services.AddSingleton<EmailNotifier>();
-builder.Services.AddSingleton<SmsNotifier>();
+builder.Services.AddSingleton<INotifier, EmailNotifier>();
+builder.Services.AddSingleton<INotifier, SmsNotifier>();
 builder.Services.AddScoped<AlertService>();
 
 var jwtSettings = builder.Configuration.GetSection("JwtSettings").Get<JwtSettings>();
