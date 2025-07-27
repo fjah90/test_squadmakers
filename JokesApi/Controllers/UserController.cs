@@ -8,11 +8,11 @@ using JokesApi.Services;
 
 namespace JokesApi.Controllers;
 
-[ApiController]
-[Route("api/users")]
 /// <summary>
 /// Manage user registration and profile endpoints.
 /// </summary>
+[ApiController]
+[Route("api/users")]
 public class UserController : ControllerBase
 {
     private readonly AppDbContext _db;
