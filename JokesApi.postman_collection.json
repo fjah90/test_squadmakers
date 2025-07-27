@@ -43,6 +43,18 @@
       }
     },
     {
+      "name": "Usuario – Promover a admin",
+      "request": {
+        "method": "POST",
+        "header": [ { "key": "Authorization", "value": "Bearer {{jwt_token}}" } ],
+        "url": {
+          "raw": "{{base_url}}/api/users/{{userId}}/promote",
+          "host": [ "{{base_url}}" ],
+          "path": [ "api", "users", "{{userId}}", "promote" ]
+        }
+      }
+    },
+    {
       "name": "Chistes – Aleatorio (Chuck)",
       "request": {
         "method": "GET",
