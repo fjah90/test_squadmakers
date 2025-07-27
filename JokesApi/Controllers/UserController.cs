@@ -26,7 +26,11 @@ public class UserController : ControllerBase
         _logger = logger;
     }
 
-    public record RegisterRequest([Required] string Name, [Required, EmailAddress] string Email, [Required, MinLength(6)] string Password);
+    public record RegisterRequest(
+        [Required] string Name,
+        [Required, EmailAddress] string Email,
+        [Required, MinLength(6)] string Password,
+        string? Role);
 
     /// <summary>
     /// Registers a new user. The server automatically sets the role to <c>"user"</c>.
@@ -38,7 +42,8 @@ public class UserController : ControllerBase
     /// {
     ///   "name": "Jane Doe",
     ///   "email": "jane@example.com",
-    ///   "password": "Password123!"
+    ///   "password": "Password123!",
+    ///   "role": "admin"   // opcional: "user" (por defecto) o "admin"
     /// }
     /// ```
     /// The response incluye el objeto <c>user</c> (donde se indica <c>role = "user"</c>),
@@ -55,13 +60,15 @@ public class UserController : ControllerBase
             return Conflict(new { message = "Email already registered" });
         }
 
+        var userRole = (request.Role?.ToLower() == "admin") ? "admin" : "user";
+
         var user = new JokesApi.Entities.User
         {
             Id = Guid.NewGuid(),
             Name = request.Name,
             Email = request.Email,
             PasswordHash = BCrypt.Net.BCrypt.HashPassword(request.Password),
-            Role = "user"
+            Role = userRole
         };
 
         _db.Users.Add(user);
