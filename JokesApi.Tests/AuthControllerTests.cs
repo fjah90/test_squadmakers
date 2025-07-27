@@ -22,7 +22,7 @@ public class AuthControllerTests
         return new AppDbContext(options);
     }
 
-    private static ITokenService CreateTokenService() => new TokenService(Options.Create(new JwtSettings
+    private static ITokenService CreateTokenService(AppDbContext db) => new TokenService(db, Options.Create(new JwtSettings
     {
         Key = "UnitTestSecretKeyUnitTestSecretKey123",
         Issuer = "TestIssuer",
@@ -39,7 +39,7 @@ public class AuthControllerTests
         var user = new User { Id = Guid.NewGuid(), Email = "user@test.com", Name = "User", PasswordHash = BCrypt.Net.BCrypt.HashPassword(password), Role = "user" };
         db.Users.Add(user);
         db.SaveChanges();
-        var controller = new AuthController(db, CreateTokenService(), NullLogger<AuthController>.Instance);
+        var controller = new AuthController(db, CreateTokenService(db), NullLogger<AuthController>.Instance);
         var request = new AuthController.LoginRequest(user.Email, password);
         // Act
         var result = await controller.Login(request) as Microsoft.AspNetCore.Mvc.OkObjectResult;
@@ -55,7 +55,7 @@ public class AuthControllerTests
     public async Task Login_ReturnsUnauthorized_WhenInvalid()
     {
         var db = CreateDb();
-        var controller = new AuthController(db, CreateTokenService(), NullLogger<AuthController>.Instance);
+        var controller = new AuthController(db, CreateTokenService(db), NullLogger<AuthController>.Instance);
         var result = await controller.Login(new AuthController.LoginRequest("bad@test.com", "wrong"));
         Assert.IsType<Microsoft.AspNetCore.Mvc.UnauthorizedObjectResult>(result);
     }

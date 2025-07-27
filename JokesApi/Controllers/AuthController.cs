@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Authentication.Google;
 using AspNet.Security.OAuth.GitHub;
 using Microsoft.EntityFrameworkCore;
 using System.ComponentModel.DataAnnotations;
+using Microsoft.IdentityModel.Tokens;
 
 namespace JokesApi.Controllers;
 
@@ -27,7 +28,7 @@ public class AuthController : ControllerBase
     }
 
     public record LoginRequest([Required, EmailAddress] string Email, [Required] string Password);
-    public record LoginResponse(string Token);
+    public record LoginResponse(string Token, string RefreshToken);
 
     [HttpPost("login")]
     public async Task<IActionResult> Login([FromBody] LoginRequest request)
@@ -40,8 +41,8 @@ public class AuthController : ControllerBase
             return Unauthorized(new { message = "Invalid credentials" });
         }
 
-        var token = _tokenService.CreateToken(user);
-        return Ok(new LoginResponse(token));
+        var pair = _tokenService.CreateTokenPair(user);
+        return Ok(new LoginResponse(pair.Token, pair.RefreshToken));
     }
 
     [HttpGet("external/google-login")]
@@ -85,7 +86,32 @@ public class AuthController : ControllerBase
             await _db.SaveChangesAsync();
         }
 
-        var token = _tokenService.CreateToken(user);
-        return Ok(new { token, returnUrl });
+        var pair = _tokenService.CreateTokenPair(user);
+        return Ok(new { token = pair.Token, refreshToken = pair.RefreshToken, returnUrl });
+    }
+
+    public record RefreshRequest(string RefreshToken);
+
+    [HttpPost("refresh")]
+    public IActionResult Refresh([FromBody] RefreshRequest request)
+    {
+        try
+        {
+            var pair = _tokenService.Refresh(request.RefreshToken);
+            return Ok(new LoginResponse(pair.Token, pair.RefreshToken));
+        }
+        catch (SecurityTokenException)
+        {
+            return Unauthorized(new { message = "Invalid refresh token" });
+        }
+    }
+
+    public record RevokeRequest(string RefreshToken);
+
+    [HttpPost("revoke")]
+    public IActionResult Revoke([FromBody] RevokeRequest req)
+    {
+        _tokenService.Revoke(req.RefreshToken);
+        return NoContent();
     }
 } 
