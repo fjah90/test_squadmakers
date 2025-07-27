@@ -1,0 +1,36 @@
+name: .NET CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+      - name: Restore
+        run: dotnet restore
+      - name: Test with coverage
+        run: |
+          dotnet test JokesApi.Tests/JokesApi.Tests.csproj \
+            /p:CollectCoverage=true \
+            /p:CoverletOutput="coverage/" \
+            /p:CoverletOutputFormat=cobertura \
+            --verbosity normal
+      - name: Install ReportGenerator
+        run: dotnet tool install --global dotnet-reportgenerator-globaltool --version 5.2.4
+      - name: Generate coverage report & badge
+        run: |
+          reportgenerator -reports:coverage/coverage.cobertura.xml -targetdir:coverage -reporttypes:Html;Badges
+      - name: Upload coverage artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-report
+          path: coverage 
