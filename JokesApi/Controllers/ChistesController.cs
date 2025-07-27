@@ -74,7 +74,7 @@ public class ChistesController : ControllerBase
                 var chuck = chuckTasks[i].Result;
                 var dad = dadTasks[i].Result;
                 var combinado = $"{chuck} Also, {dad}";
-                result.Add(new { chuck, dad, combinado });
+                result.Add(new { id = i + 1, chuck, dad, combinado });
             }
             return Ok(result);
         }
