@@ -5,6 +5,7 @@ using JokesApi.Entities;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using JokesApi.Domain.Repositories;
 
 namespace JokesApi.Controllers;
 
@@ -14,13 +15,13 @@ namespace JokesApi.Controllers;
 public class ChistesController : ControllerBase
 {
     private readonly IHttpClientFactory _httpFactory;
-    private readonly AppDbContext _db;
+    private readonly IUnitOfWork _uow;
     private readonly ILogger<ChistesController> _logger;
 
-    public ChistesController(IHttpClientFactory httpFactory, AppDbContext db, ILogger<ChistesController> logger)
+    public ChistesController(IHttpClientFactory httpFactory, IUnitOfWork uow, ILogger<ChistesController> logger)
     {
         _httpFactory = httpFactory;
-        _db = db;
+        _uow = uow;
         _logger = logger;
     }
 
@@ -91,7 +92,7 @@ public class ChistesController : ControllerBase
         {
             var chuck = await GetChuckJokeAsync();
             var dad = await GetDadJokeAsync();
-            var local = await _db.Jokes.AsNoTracking().OrderBy(r => Guid.NewGuid()).Select(j => j.Text).FirstOrDefaultAsync();
+            var local = await _uow.Jokes.Query.AsNoTracking().OrderBy(r => Guid.NewGuid()).Select(j => j.Text).FirstOrDefaultAsync();
             var pieces = new[] { chuck.Split('.')[0], dad.Split('.')[0], local?.Split('.')[0] }.Where(s => !string.IsNullOrWhiteSpace(s));
             var combined = string.Join(", ", pieces) + ".";
             return Ok(new { combined });
@@ -122,26 +123,26 @@ public class ChistesController : ControllerBase
 
         if (req.ThemeIds?.Any() == true)
         {
-            var themes = await _db.Themes.Where(t => req.ThemeIds.Contains(t.Id)).ToListAsync();
+            var themes = await _uow.Themes.Query.Where(t => req.ThemeIds.Contains(t.Id)).ToListAsync();
             joke.Themes = themes;
         }
 
-        _db.Jokes.Add(joke);
-        await _db.SaveChangesAsync();
+        await _uow.Jokes.AddAsync(joke);
+        await _uow.SaveAsync();
         return CreatedAtAction(nameof(GetById), new { id = joke.Id }, joke);
     }
 
     [HttpGet("{id:guid}")]
     public async Task<IActionResult> GetById(Guid id)
     {
-        var joke = await _db.Jokes.AsNoTracking().Include(j => j.Author).FirstOrDefaultAsync(j => j.Id == id);
+        var joke = await _uow.Jokes.Query.AsNoTracking().Include(j => j.Author).FirstOrDefaultAsync(j => j.Id == id);
         return joke is null ? NotFound() : Ok(joke);
     }
 
     [HttpGet("filtrar")]
     public async Task<IActionResult> Filter([FromQuery] int? minPalabras, [FromQuery] string? contiene, [FromQuery] Guid? autorId, [FromQuery] Guid? tematicaId)
     {
-        var query = _db.Jokes.AsQueryable();
+        var query = _uow.Jokes.Query.AsQueryable();
 
         if (minPalabras.HasValue)
             query = query.Where(j => j.Text.Split(' ', StringSplitOptions.RemoveEmptyEntries).Length >= minPalabras);
@@ -161,7 +162,7 @@ public class ChistesController : ControllerBase
     [HttpPut("{id:guid}")]
     public async Task<IActionResult> Update(Guid id, [FromBody] UpdateJokeRequest req)
     {
-        var joke = await _db.Jokes.FindAsync(id);
+        var joke = await _uow.Jokes.Query.FirstOrDefaultAsync(j => j.Id == id);
         if (joke is null) return NotFound();
 
         var userIdStr = User.FindFirst("sub")?.Value;
@@ -172,14 +173,14 @@ public class ChistesController : ControllerBase
             return Forbid();
 
         joke.Text = req.Text;
-        await _db.SaveChangesAsync();
+        await _uow.SaveAsync();
         return NoContent();
     }
 
     [HttpDelete("{id:guid}")]
     public async Task<IActionResult> Delete(Guid id)
     {
-        var joke = await _db.Jokes.FindAsync(id);
+        var joke = await _uow.Jokes.Query.FirstOrDefaultAsync(j => j.Id == id);
         if (joke is null) return NotFound();
 
         var userIdStr = User.FindFirst("sub")?.Value;
@@ -189,8 +190,8 @@ public class ChistesController : ControllerBase
         if (joke.AuthorId != userId && !isAdmin)
             return Forbid();
 
-        _db.Jokes.Remove(joke);
-        await _db.SaveChangesAsync();
+        _uow.Jokes.Remove(joke);
+        await _uow.SaveAsync();
         return NoContent();
     }
 
