@@ -61,22 +61,42 @@ builder.Services.AddScoped<AlertService>();
 var jwtSettings = builder.Configuration.GetSection("JwtSettings").Get<JwtSettings>();
 var key = Encoding.UTF8.GetBytes(jwtSettings!.Key);
 
+// Removed duplicate AddAuthentication call; configuration is handled below.
+
+var authSection = builder.Configuration.GetSection("Authentication");
+var googleClientId = authSection["Google:ClientId"];
+var googleClientSecret = authSection["Google:ClientSecret"];
+var githubClientId = authSection["GitHub:ClientId"];
+var githubClientSecret = authSection["GitHub:ClientSecret"];
+
 builder.Services.AddAuthentication(options =>
 {
     options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
     options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
-}).AddJwtBearer(options =>
-{
-    options.TokenValidationParameters = new TokenValidationParameters
+})
+    .AddJwtBearer(options =>
     {
-        ValidateIssuer = true,
-        ValidateAudience = true,
-        ValidateIssuerSigningKey = true,
-        ValidIssuer = jwtSettings.Issuer,
-        ValidAudience = jwtSettings.Audience,
-        IssuerSigningKey = new SymmetricSecurityKey(key)
-    };
-});
+        options.TokenValidationParameters = new TokenValidationParameters
+        {
+            ValidateIssuer = true,
+            ValidateAudience = true,
+            ValidateIssuerSigningKey = true,
+            ValidIssuer = jwtSettings.Issuer,
+            ValidAudience = jwtSettings.Audience,
+            IssuerSigningKey = new SymmetricSecurityKey(key)
+        };
+    })
+    .AddGoogle("Google", options =>
+    {
+        options.ClientId = googleClientId!;
+        options.ClientSecret = googleClientSecret!;
+    })
+    .AddGitHub(options =>
+    {
+        options.ClientId = githubClientId!;
+        options.ClientSecret = githubClientSecret!;
+        options.Scope.Add("user:email");
+    });
 
 builder.Services.AddAuthorization();
 
@@ -95,25 +115,6 @@ builder.Services.AddHttpClient("Dad", c =>
     .AddTransientHttpErrorPolicy(pb => pb.WaitAndRetryAsync(3, i => TimeSpan.FromSeconds(Math.Pow(2, i))))
     .AddTransientHttpErrorPolicy(pb => pb.CircuitBreakerAsync(5, TimeSpan.FromSeconds(30)));
 
-var authSection = builder.Configuration.GetSection("Authentication");
-var googleClientId = authSection["Google:ClientId"];
-var googleClientSecret = authSection["Google:ClientSecret"];
-var githubClientId = authSection["GitHub:ClientId"];
-var githubClientSecret = authSection["GitHub:ClientSecret"];
-
-builder.Services.AddAuthentication()
-    .AddGoogle("Google", options =>
-    {
-        options.ClientId = googleClientId!;
-        options.ClientSecret = googleClientSecret!;
-    })
-    .AddGitHub(options =>
-    {
-        options.ClientId = githubClientId!;
-        options.ClientSecret = githubClientSecret!;
-        options.Scope.Add("user:email");
-    });
-
 builder.Services.AddScoped<IJokeRepository, JokeRepository>();
 builder.Services.AddScoped<IThemeRepository, ThemeRepository>();
 builder.Services.AddScoped<IUserRepository, UserRepository>();
@@ -131,8 +132,6 @@ if (app.Environment.IsDevelopment())
 app.UseHttpsRedirection();
 
 app.UseMiddleware<JokesApi.Middleware.ErrorHandlingMiddleware>();
-
-app.MapControllers();
 
 // SEED DB
 using (var scope = app.Services.CreateScope())
@@ -156,6 +155,8 @@ using (var scope = app.Services.CreateScope())
 
 app.UseAuthentication();
 app.UseAuthorization();
+
+app.MapControllers();
 
 app.Run();
 
