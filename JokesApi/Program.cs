@@ -8,6 +8,8 @@ using Microsoft.IdentityModel.Tokens;
 using System.Net.Http.Headers;
 using JokesApi.Notifications;
 using AspNet.Security.OAuth.GitHub;
+using Polly;
+using Polly.Extensions.Http;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -51,13 +53,17 @@ builder.Services.AddAuthorization();
 builder.Services.AddHttpClient("Chuck", c =>
 {
     c.BaseAddress = new Uri("https://api.chucknorris.io/");
-});
+})
+    .AddTransientHttpErrorPolicy(pb => pb.WaitAndRetryAsync(3, i => TimeSpan.FromSeconds(Math.Pow(2, i))))
+    .AddTransientHttpErrorPolicy(pb => pb.CircuitBreakerAsync(5, TimeSpan.FromSeconds(30)));
 
 builder.Services.AddHttpClient("Dad", c =>
 {
     c.BaseAddress = new Uri("https://icanhazdadjoke.com/");
     c.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
-});
+})
+    .AddTransientHttpErrorPolicy(pb => pb.WaitAndRetryAsync(3, i => TimeSpan.FromSeconds(Math.Pow(2, i))))
+    .AddTransientHttpErrorPolicy(pb => pb.CircuitBreakerAsync(5, TimeSpan.FromSeconds(30)));
 
 var authSection = builder.Configuration.GetSection("Authentication");
 var googleClientId = authSection["Google:ClientId"];
