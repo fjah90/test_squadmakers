@@ -211,3 +211,5 @@ Crea/edita el archivo `appsettings.Development.json` y reemplaza los valores mar
 3. Para los endpoints protegidos, presiona **Authorize** e ingresa un JWT válido (se obtiene en `/api/auth/login`).
 
 ¡Listo! Ahora puedes probar los servicios de autenticación, gestión de chistes y notificaciones directamente desde la interfaz Swagger. 
+
+![coverage](coverage/badge.svg) 
