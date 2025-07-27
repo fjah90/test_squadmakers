@@ -2,6 +2,7 @@ using JokesApi.Data;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 
 namespace JokesApi.Controllers;
 
@@ -10,10 +11,12 @@ namespace JokesApi.Controllers;
 public class UsuarioController : ControllerBase
 {
     private readonly AppDbContext _db;
+    private readonly ILogger<UsuarioController> _logger;
 
-    public UsuarioController(AppDbContext db)
+    public UsuarioController(AppDbContext db, ILogger<UsuarioController> logger)
     {
         _db = db;
+        _logger = logger;
     }
 
     [Authorize(Roles = "user,admin")]

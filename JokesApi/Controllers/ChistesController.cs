@@ -1,3 +1,4 @@
+using System.ComponentModel.DataAnnotations;
 using System.Net.Http.Json;
 using JokesApi.Data;
 using JokesApi.Entities;
@@ -103,7 +104,7 @@ public class ChistesController : ControllerBase
     }
 
     // Local jokes
-    public record CreateJokeRequest(string Text, List<Guid>? ThemeIds);
+    public record CreateJokeRequest([Required, MinLength(1)] string Text, List<Guid>? ThemeIds);
 
     [HttpPost]
     public async Task<IActionResult> Create([FromBody] CreateJokeRequest req)
@@ -155,7 +156,7 @@ public class ChistesController : ControllerBase
         return Ok(result);
     }
 
-    public record UpdateJokeRequest(string Text);
+    public record UpdateJokeRequest([Required, MinLength(1)] string Text);
 
     [HttpPut("{id:guid}")]
     public async Task<IActionResult> Update(Guid id, [FromBody] UpdateJokeRequest req)

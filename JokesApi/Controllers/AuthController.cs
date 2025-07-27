@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Google;
 using AspNet.Security.OAuth.GitHub;
 using Microsoft.EntityFrameworkCore;
+using System.ComponentModel.DataAnnotations;
 
 namespace JokesApi.Controllers;
 
@@ -16,22 +17,26 @@ public class AuthController : ControllerBase
 {
     private readonly AppDbContext _db;
     private readonly ITokenService _tokenService;
+    private readonly ILogger<AuthController> _logger;
 
-    public AuthController(AppDbContext db, ITokenService tokenService)
+    public AuthController(AppDbContext db, ITokenService tokenService, ILogger<AuthController> logger)
     {
         _db = db;
         _tokenService = tokenService;
+        _logger = logger;
     }
 
-    public record LoginRequest(string Email, string Password);
+    public record LoginRequest([Required, EmailAddress] string Email, [Required] string Password);
     public record LoginResponse(string Token);
 
     [HttpPost("login")]
     public async Task<IActionResult> Login([FromBody] LoginRequest request)
     {
+        _logger.LogInformation("Login attempt for {Email}", request.Email);
         var user = await _db.Users.FirstOrDefaultAsync(u => u.Email == request.Email);
         if (user is null || !BCrypt.Net.BCrypt.Verify(request.Password, user.PasswordHash))
         {
+            _logger.LogWarning("Invalid credentials for {Email}", request.Email);
             return Unauthorized(new { message = "Invalid credentials" });
         }
 

@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Logging;
 
 namespace JokesApi.Controllers;
 
@@ -8,6 +9,13 @@ namespace JokesApi.Controllers;
 [Authorize(Roles = "user,admin")]
 public class MatematicasController : ControllerBase
 {
+    private readonly ILogger<MatematicasController> _logger;
+
+    public MatematicasController(ILogger<MatematicasController> logger)
+    {
+        _logger = logger;
+    }
+
     [HttpGet("mcm")]
     public IActionResult Lcm([FromQuery] string numbers)
     {
