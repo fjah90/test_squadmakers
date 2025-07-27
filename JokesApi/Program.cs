@@ -42,6 +42,9 @@ builder.Services.AddSwaggerGen(options =>
     var xmlPath = System.IO.Path.Combine(AppContext.BaseDirectory, "JokesApi.xml");
     if (System.IO.File.Exists(xmlPath))
         options.IncludeXmlComments(xmlPath);
+
+    // add lock icon automatically to [Authorize] endpoints
+    options.OperationFilter<JokesApi.Swagger.AuthorizeCheckOperationFilter>();
 });
 builder.Services.AddControllers();
 builder.Services.AddDbContext<AppDbContext>(options =>
