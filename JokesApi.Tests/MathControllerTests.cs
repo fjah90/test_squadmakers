@@ -13,15 +13,19 @@ public class MathControllerTests
     {
         var result = _controller.Lcm("3,4") as OkObjectResult;
         Assert.NotNull(result);
-        dynamic obj = result!.Value!;
-        Assert.Equal(12, (long)obj.lcm);
+        var value = result!.Value!;
+        var prop = value.GetType().GetProperty("lcm");
+        Assert.NotNull(prop);
+        Assert.Equal(12L, (long)prop!.GetValue(value)!);
     }
 
     [Fact]
     public void NextNumber_ReturnsPlusOne()
     {
         var result = _controller.NextNumber(7) as OkObjectResult;
-        dynamic obj = result!.Value!;
-        Assert.Equal(8, (int)obj.result);
+        var val = result!.Value!;
+        var p = val.GetType().GetProperty("result");
+        Assert.NotNull(p);
+        Assert.Equal(8, (int)p!.GetValue(val)!);
     }
 } 

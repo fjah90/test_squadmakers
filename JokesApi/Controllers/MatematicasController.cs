@@ -16,6 +16,9 @@ public class MatematicasController : ControllerBase
         _logger = logger;
     }
 
+    // Parameterless constructor for tests
+    public MatematicasController() : this(Microsoft.Extensions.Logging.Abstractions.NullLogger<MatematicasController>.Instance) {}
+
     [HttpGet("mcm")]
     public IActionResult Lcm([FromQuery] string numbers)
     {
