@@ -41,7 +41,8 @@ public class UserController : ControllerBase
     ///   "password": "Password123!"
     /// }
     /// ```
-    /// The response includes a JWT and a refresh token.
+    /// The response incluye el objeto <c>user</c> (donde se indica <c>role = "user"</c>),
+    /// el JWT (<c>token</c>) y el <c>refreshToken</c>.
     /// </remarks>
     /// <response code="201">User created successfully.</response>
     /// <response code="409">Email already registered.</response>
@@ -67,7 +68,15 @@ public class UserController : ControllerBase
         await _db.SaveChangesAsync();
 
         var pair = _tokenService.CreateTokenPair(user);
-        return CreatedAtAction(nameof(GetCurrentUser), new { }, new { token = pair.Token, refreshToken = pair.RefreshToken });
+
+        var response = new
+        {
+            user = new { user.Id, user.Name, user.Email, user.Role },
+            token = pair.Token,
+            refreshToken = pair.RefreshToken
+        };
+
+        return CreatedAtAction(nameof(GetCurrentUser), new { }, response);
     }
 
     [Authorize(Roles = "user,admin")]
