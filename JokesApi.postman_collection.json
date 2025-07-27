@@ -93,6 +93,54 @@
         "header": [ { "key": "Authorization", "value": "Bearer {{jwt_token}}" } ],
         "url": { "raw": "{{base_url}}/api/matematicas/mcm?numbers=3,4,5", "host": [ "{{base_url}}" ], "path": ["api","matematicas","mcm"], "query": [ { "key": "numbers", "value": "3,4,5" } ] }
       }
+    },
+    {
+      "name": "Matemáticas – MCD",
+      "request": {
+        "method": "GET",
+        "header": [ { "key": "Authorization", "value": "Bearer {{jwt_token}}" } ],
+        "url": { "raw": "{{base_url}}/api/matematicas/mcd?numbers=12,18", "host": [ "{{base_url}}" ], "path": ["api","matematicas","mcd"], "query": [ { "key": "numbers", "value": "12,18" } ] }
+      }
+    },
+    {
+      "name": "Matemáticas – MCM (Lote)",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" },
+          { "key": "Authorization", "value": "Bearer {{jwt_token}}" }
+        ],
+        "url": { "raw": "{{base_url}}/api/matematicas/mcm/lote", "host": [ "{{base_url}}" ], "path": ["api","matematicas","mcm","lote"] },
+        "body": { "mode": "raw", "raw": "{\n  \"numbers\": [10, 20, 30]\n}" }
+      }
+    },
+    {
+      "name": "Matemáticas – MCD (Lote)",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" },
+          { "key": "Authorization", "value": "Bearer {{jwt_token}}" }
+        ],
+        "url": { "raw": "{{base_url}}/api/matematicas/mcd/lote", "host": [ "{{base_url}}" ], "path": ["api","matematicas","mcd","lote"] },
+        "body": { "mode": "raw", "raw": "{\n  \"numbers\": [15, 25, 35]\n}" }
+      }
+    },
+    {
+      "name": "Matemáticas – Refresh Token",
+      "request": {
+        "method": "POST",
+        "header": [ { "key": "Authorization", "value": "Bearer {{jwt_token}}" } ],
+        "url": { "raw": "{{base_url}}/api/auth/refresh", "host": [ "{{base_url}}" ], "path": ["api","auth","refresh"] }
+      }
+    },
+    {
+      "name": "Matemáticas – Revoke Token",
+      "request": {
+        "method": "POST",
+        "header": [ { "key": "Authorization", "value": "Bearer {{jwt_token}}" } ],
+        "url": { "raw": "{{base_url}}/api/auth/revoke", "host": [ "{{base_url}}" ], "path": ["api","auth","revoke"] }
+      }
     }
   ]
 } 
