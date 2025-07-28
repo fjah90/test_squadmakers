@@ -44,6 +44,9 @@ public class AuthController : ControllerBase
     [SwaggerResponse(StatusCodes.Status429TooManyRequests, "Too many login attempts")]
     public async Task<IActionResult> Login([FromBody] LoginRequest request)
     {
+        if (request is null)
+            return BadRequest("Request cannot be null");
+
         _logger.LogInformation("Login attempt for {Email}", request.Email);
         var user = await _db.Users.FirstOrDefaultAsync(u => u.Email == request.Email);
         if (user is null || !BCrypt.Net.BCrypt.Verify(request.Password, user.PasswordHash))
@@ -123,6 +126,9 @@ public class AuthController : ControllerBase
     [SwaggerResponse(StatusCodes.Status401Unauthorized, "Invalid or expired refresh token")]
     public IActionResult Refresh([FromBody] RefreshRequest request)
     {
+        if (request is null || string.IsNullOrWhiteSpace(request.RefreshToken))
+            return Unauthorized(new { message = "Invalid refresh token" });
+
         try
         {
             var pair = _tokenService.Refresh(request.RefreshToken);
@@ -144,6 +150,9 @@ public class AuthController : ControllerBase
     [SwaggerResponse(StatusCodes.Status204NoContent, "Token successfully revoked")]
     public IActionResult Revoke([FromBody] RevokeRequest req)
     {
+        if (req is null)
+            return NoContent();
+
         _tokenService.Revoke(req.RefreshToken);
         return NoContent();
     }
