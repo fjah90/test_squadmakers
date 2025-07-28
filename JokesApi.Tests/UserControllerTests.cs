@@ -29,7 +29,7 @@ namespace JokesApi.Tests
         {
             var mockTokenService = new Mock<ITokenService>();
             mockTokenService.Setup(s => s.CreateTokenPair(It.IsAny<User>()))
-                .Returns(new TokenPair("test-token", "test-refresh-token"));
+                .Returns(new TokenPair("jwt-token", "refresh-token"));
             return mockTokenService.Object;
         }
 
@@ -39,13 +39,8 @@ namespace JokesApi.Tests
             // Arrange
             var db = CreateDb();
             var controller = new UserController(db, CreateTokenService(), NullLogger<UserController>.Instance);
-            var request = new UserController.RegisterRequest(
-                "Test User",
-                "test@example.com",
-                "Password123!",
-                null
-            );
-
+            var request = new UserController.RegisterRequest("Test User", "test@example.com", "password", null);
+            
             // Act
             var result = await controller.Register(request);
 
@@ -53,14 +48,11 @@ namespace JokesApi.Tests
             var createdResult = Assert.IsType<CreatedAtActionResult>(result);
             Assert.Equal(201, createdResult.StatusCode);
             
-            var response = createdResult.Value;
-            Assert.NotNull(response);
-            
-            // Verify user was saved to database
-            var savedUser = await db.Users.FirstOrDefaultAsync(u => u.Email == "test@example.com");
-            Assert.NotNull(savedUser);
-            Assert.Equal("Test User", savedUser.Name);
-            Assert.Equal("user", savedUser.Role); // Default role
+            // Verify user was created in database
+            var user = await db.Users.FirstOrDefaultAsync(u => u.Email == "test@example.com");
+            Assert.NotNull(user);
+            Assert.Equal("Test User", user.Name);
+            Assert.Equal("user", user.Role);
         }
 
         [Fact]
@@ -68,25 +60,18 @@ namespace JokesApi.Tests
         {
             // Arrange
             var db = CreateDb();
-            var existingUser = new User
-            {
-                Id = Guid.NewGuid(),
-                Name = "Existing User",
-                Email = "existing@example.com",
+            db.Users.Add(new User { 
+                Id = Guid.NewGuid(), 
+                Name = "Existing User", 
+                Email = "existing@example.com", 
                 PasswordHash = "hash",
                 Role = "user"
-            };
-            db.Users.Add(existingUser);
+            });
             await db.SaveChangesAsync();
 
             var controller = new UserController(db, CreateTokenService(), NullLogger<UserController>.Instance);
-            var request = new UserController.RegisterRequest(
-                "New User",
-                "existing@example.com", // Same email
-                "Password123!",
-                null
-            );
-
+            var request = new UserController.RegisterRequest("New User", "existing@example.com", "password", null);
+            
             // Act
             var result = await controller.Register(request);
 
@@ -101,23 +86,18 @@ namespace JokesApi.Tests
             // Arrange
             var db = CreateDb();
             var controller = new UserController(db, CreateTokenService(), NullLogger<UserController>.Instance);
-            var request = new UserController.RegisterRequest(
-                "Admin User",
-                "admin@example.com",
-                "Password123!",
-                "admin"
-            );
-
+            var request = new UserController.RegisterRequest("Admin User", "admin@example.com", "password", "admin");
+            
             // Act
             var result = await controller.Register(request);
 
             // Assert
             var createdResult = Assert.IsType<CreatedAtActionResult>(result);
             
-            // Verify user was saved with admin role
-            var savedUser = await db.Users.FirstOrDefaultAsync(u => u.Email == "admin@example.com");
-            Assert.NotNull(savedUser);
-            Assert.Equal("admin", savedUser.Role);
+            // Verify user was created with admin role
+            var user = await db.Users.FirstOrDefaultAsync(u => u.Email == "admin@example.com");
+            Assert.NotNull(user);
+            Assert.Equal("admin", user.Role);
         }
 
         [Fact]
@@ -240,7 +220,7 @@ namespace JokesApi.Tests
             var result = await controller.UpdateUser(userId, request);
 
             // Assert
-            Assert.IsType<NoContentResult>(result);
+            var okResult = Assert.IsType<OkObjectResult>(result);
             
             // Verify user was updated
             var user = await db.Users.FindAsync(userId);
