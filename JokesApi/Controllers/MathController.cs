@@ -61,4 +61,40 @@ public class MathController : ControllerBase
     }
 
     private static long LcmTwo(long a, long b) => a / Gcd(a, b) * b;
+    
+    /// <summary>
+    /// Suma dos números enteros.
+    /// </summary>
+    /// <param name="a">Primer número</param>
+    /// <param name="b">Segundo número</param>
+    /// <returns>La suma de a y b</returns>
+    [HttpGet("/api/math/add")]
+    public IActionResult Add([FromQuery] int a, [FromQuery] int b)
+    {
+        return Ok(a + b);
+    }
+    
+    /// <summary>
+    /// Resta dos números enteros.
+    /// </summary>
+    /// <param name="a">Primer número</param>
+    /// <param name="b">Segundo número</param>
+    /// <returns>La diferencia entre a y b</returns>
+    [HttpGet("/api/math/subtract")]
+    public IActionResult Subtract([FromQuery] int a, [FromQuery] int b)
+    {
+        return Ok(a - b);
+    }
+    
+    /// <summary>
+    /// Multiplica dos números enteros.
+    /// </summary>
+    /// <param name="a">Primer número</param>
+    /// <param name="b">Segundo número</param>
+    /// <returns>El producto de a y b</returns>
+    [HttpGet("/api/math/multiply")]
+    public IActionResult Multiply([FromQuery] int a, [FromQuery] int b)
+    {
+        return Ok(a * b);
+    }
 } 

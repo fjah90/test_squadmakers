@@ -30,7 +30,7 @@ namespace JokesApi.Tests
         public async Task GetUsers_ReturnsUnauthorized_WhenNoToken()
         {
             // Act
-            var response = await _client.GetAsync("/api/user");
+            var response = await _client.GetAsync("/api/users");
             
             // Assert
             Assert.Equal(System.Net.HttpStatusCode.Unauthorized, response.StatusCode);
@@ -49,7 +49,7 @@ namespace JokesApi.Tests
             };
 
             // Act
-            var response = await _client.PostAsJsonAsync("/api/auth/register", registerData);
+            var response = await _client.PostAsJsonAsync("/api/users/register", registerData);
             
             // Assert
             Assert.Equal(System.Net.HttpStatusCode.Created, response.StatusCode);

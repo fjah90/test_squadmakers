@@ -176,6 +176,28 @@ public class UserController : ControllerBase
         return NoContent();
     }
 
+    /// <summary>
+    /// Returns information about the currently authenticated user.
+    /// </summary>
+    /// <response code="200">User profile data returned.</response>
+    /// <response code="404">User not found.</response>
+    [Authorize]
+    [HttpGet("/api/usuario")]
+    public async Task<IActionResult> GetCurrentUser()
+    {
+        var userId = User.FindFirst("sub")?.Value;
+        if (string.IsNullOrEmpty(userId) || !Guid.TryParse(userId, out var id))
+        {
+            return BadRequest(new { message = "Invalid user identifier in token" });
+        }
+
+        var user = await _db.Users.AsNoTracking()
+            .Select(u => new { u.Id, u.Name, u.Email, u.Role })
+            .FirstOrDefaultAsync(u => u.Id == id);
+            
+        return user is null ? NotFound() : Ok(user);
+    }
+
     [Authorize(Roles = "admin")]
     [HttpGet("/api/admin")]
     public IActionResult AdminEndpoint()
