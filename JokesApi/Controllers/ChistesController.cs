@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using JokesApi.Domain.Repositories;
 using JokesApi.Application.UseCases;
+using Swashbuckle.AspNetCore.Annotations;
 
 namespace JokesApi.Controllers;
 
@@ -113,22 +114,78 @@ public class ChistesController : ControllerBase
         return joke is null ? NotFound() : Ok(joke);
     }
 
+    /// <summary>
+    /// Filtra chistes según varios criterios
+    /// </summary>
+    /// <param name="minPalabras">Número mínimo de palabras que debe tener el chiste</param>
+    /// <param name="contiene">Texto que debe contener el chiste</param>
+    /// <param name="autorId">ID del autor del chiste</param>
+    /// <param name="tematicaId">ID de la temática del chiste</param>
+    /// <returns>Lista de chistes que cumplen con los criterios de filtrado</returns>
     [HttpGet("filtrar")]
-    public async Task<IActionResult> Filter([FromQuery] int? minPalabras, [FromQuery] string? contiene, [FromQuery] Guid? autorId, [FromQuery] Guid? tematicaId)
+    [SwaggerOperation(
+        Summary = "Filtra chistes según varios criterios",
+        Description = "Permite filtrar chistes por número de palabras, contenido, autor y temática"
+    )]
+    [SwaggerResponse(200, "Lista de chistes filtrados", typeof(List<Joke>))]
+    public async Task<IActionResult> Filter(
+        [FromQuery] int? minPalabras, 
+        [FromQuery] string? contiene, 
+        [FromQuery] Guid? autorId, 
+        [FromQuery] Guid? tematicaId)
     {
-        var query = _uow.Jokes.Query.AsQueryable();
+        try
+        {
+            // Iniciar con una consulta IQueryable para construir la consulta de manera eficiente
+            var query = _uow.Jokes.Query
+                .Include(j => j.Author)
+                .Include(j => j.Themes)
+                .AsQueryable();
 
-        if (minPalabras.HasValue)
-            query = query.Where(j => j.Text.Split(' ', StringSplitOptions.RemoveEmptyEntries).Length >= minPalabras);
-        if (!string.IsNullOrWhiteSpace(contiene))
-            query = query.Where(j => j.Text.Contains(contiene));
-        if (autorId.HasValue)
-            query = query.Where(j => j.AuthorId == autorId);
-        if (tematicaId.HasValue)
-            query = query.Where(j => j.Themes.Any(t => t.Id == tematicaId));
+            // Aplicar filtros solo si se proporcionan los parámetros
+            if (minPalabras.HasValue && minPalabras.Value > 0)
+            {
+                _logger.LogInformation("Filtrando por mínimo de palabras: {minPalabras}", minPalabras.Value);
+                query = query.Where(j => j.Text.Split(' ', StringSplitOptions.RemoveEmptyEntries).Length >= minPalabras.Value);
+            }
+            
+            if (!string.IsNullOrWhiteSpace(contiene))
+            {
+                _logger.LogInformation("Filtrando por contenido: {contiene}", contiene);
+                query = query.Where(j => j.Text.Contains(contiene));
+            }
+            
+            if (autorId.HasValue)
+            {
+                _logger.LogInformation("Filtrando por autor: {autorId}", autorId.Value);
+                query = query.Where(j => j.AuthorId == autorId.Value);
+            }
+            
+            if (tematicaId.HasValue)
+            {
+                _logger.LogInformation("Filtrando por temática: {tematicaId}", tematicaId.Value);
+                query = query.Where(j => j.Themes.Any(t => t.Id == tematicaId.Value));
+            }
 
-        var result = await query.AsNoTracking().ToListAsync();
-        return Ok(result);
+            // Ejecutar la consulta y devolver los resultados
+            var result = await query
+                .AsNoTracking()
+                .Select(j => new {
+                    j.Id,
+                    j.Text,
+                    j.Source,
+                    Author = new { j.Author.Id, j.Author.Name },
+                    Themes = j.Themes.Select(t => new { t.Id, t.Name })
+                })
+                .ToListAsync();
+                
+            return Ok(result);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error al filtrar chistes");
+            return StatusCode(500, "Error al filtrar chistes");
+        }
     }
 
     public record UpdateJokeRequest([Required, MinLength(1)] string Text);
