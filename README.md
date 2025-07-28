@@ -7,6 +7,8 @@
 2. [Arquitectura](#arquitectura)
 3. [Requisitos](#requisitos)
 4. [Puesta en marcha](#puesta-en-marcha)
+   1. [Ejecución local](#ejecución-local)
+   2. [Ejecución con Docker](#ejecución-con-docker)
 5. [Configuración](#configuración)
 6. [Referencia de la API REST](#referencia-de-la-api-rest)
    1. [Endpoints de Autenticación](#endpoints-de-autenticación)
@@ -14,8 +16,10 @@
    3. [Endpoints de Chistes](#endpoints-de-chistes)
    4. [Endpoints Matemáticos](#endpoints-matemáticos)
 7. [Ejecución de Pruebas](#ejecución-de-pruebas)
-8. [Estructura del Proyecto](#estructura-del-proyecto)
-9. [Mejoras Futuras](#mejoras-futuras)
+8. [CI/CD](#cicd)
+9. [Estructura del Proyecto](#estructura-del-proyecto)
+10. [Seguridad](#seguridad)
+11. [Mejoras Futuras](#mejoras-futuras)
 
 ---
 
@@ -34,49 +38,78 @@ Este proyecto entrega los **Ejercicios 1** (Autenticación y Autorización) y **
   * Ejecuta peticiones HTTP en paralelo con `HttpClientFactory` y `async/await`.
 
 ## Arquitectura
-Clean Architecture con clara separación de responsabilidades.
+Arquitectura Hexagonal (Ports and Adapters) con clara separación de responsabilidades.
 
 ```
 ┌──────────────────────────┐
 │        Controllers       │  <-- Capa REST (ASP.NET Core MVC)
 ├──────────────────────────┤
-│     Application Layer    │  <-- Servicios / Casos de uso
+│     Application Layer    │  <-- Casos de uso / Puertos
 ├──────────────────────────┤
-│      Infrastructure      │  <-- EF Core, HttpClientFactory, JWT, OAuth
+│      Infrastructure      │  <-- Adaptadores: EF Core, HttpClientFactory, JWT, OAuth
 └──────────────────────────┘
 ```
 
 * Inyección de dependencias configurada en `Program.cs`.
-* Base de datos: SQLite por defecto (puede sustituirse vía `ConnectionStrings:Default`).
+* Base de datos: SQLite por defecto, PostgreSQL en Docker.
 
 ## Requisitos
 * .NET 8.0 SDK (LTS)
-* PowerShell 7 (Windows 11)
+* PowerShell 7 (Windows 11) o Bash (Linux/macOS)
+* Docker y Docker Compose (opcional, para ejecución containerizada)
 * Credenciales de apps OAuth (Google / GitHub) para login externo
 
 ## Puesta en marcha
+
+### Ejecución local
 ```pwsh
 # Restaurar y compilar
- dotnet restore
- dotnet build
+dotnet restore
+dotnet build
 
 # Aplicar migraciones EF Core (SQLite)
- dotnet ef database update --project JokesApi/JokesApi.csproj
+dotnet ef database update --project JokesApi/JokesApi.csproj
 
 # Ejecutar la API (http://localhost:5278 o https://localhost:7014)
- dotnet run --project JokesApi/JokesApi.csproj
+dotnet run --project JokesApi/JokesApi.csproj
 ```
-Abre Swagger generado y explora los endpoints.
+
+### Ejecución con Docker
+```bash
+# Construir y levantar los contenedores
+docker-compose up -d
+
+# La API estará disponible en http://localhost:5000
+```
+
+El archivo `docker-compose.yml` configura:
+- La API en un contenedor basado en .NET 8
+- PostgreSQL como base de datos
+- Variables de entorno para la conexión a la base de datos
 
 ## Configuración
 Fragmento relevante de `appsettings.json`:
 ```jsonc
 {
+  "ConnectionStrings": {
+    "Default": "Data Source=jokes.db" // SQLite por defecto
+    // Para PostgreSQL: "Host=postgres;Database=jokesdb;Username=postgres;Password=postgres"
+  },
   "JwtSettings": {
     "Issuer": "JokesApi",
     "Audience": "JokesApiClient",
     "Key": "<CLAVE_SUPER_SECRETA>",
     "ExpirationMinutes": 60
+  },
+  "IpRateLimiting": {
+    "EnableEndpointRateLimiting": true,
+    "GeneralRules": [
+      {
+        "Endpoint": "*:/api/auth/login",
+        "Period": "5m",
+        "Limit": 10
+      }
+    ]
   }
 }
 ```
@@ -91,6 +124,8 @@ Todos los endpoints que modifican estado o exponen datos sensibles están **prot
 | GET  | `/api/auth/external/google-login` | Público | Redirección a OAuth Google. |
 | GET  | `/api/auth/external/github-login` | Público | Redirección a OAuth GitHub. |
 | GET  | `/api/auth/external/callback` | Público | Callback OAuth; genera JWT interno. |
+| POST | `/api/auth/refresh` | Público | Refresca un token expirado usando refresh token. |
+| POST | `/api/auth/revoke` | Público | Revoca un refresh token. |
 
 ### Endpoints de Usuarios
 | Método | Ruta | Roles | Descripción |
@@ -120,29 +155,61 @@ Todos los endpoints que modifican estado o exponen datos sensibles están **prot
 
 ## Ejecución de Pruebas
 ```pwsh
-cd JokesApi.Tests
- dotnet test /p:CollectCoverage=true /p:CoverletOutputFormat=opencover
+# Ejecutar pruebas con cobertura
+dotnet test /p:CollectCoverage=true /p:CoverletOutputFormat=cobertura
+
+# Ver informe de cobertura
+dotnet tool install -g reportgenerator
+reportgenerator -reports:"**/coverage.cobertura.xml" -targetdir:"coveragereport" -reporttypes:Html
 ```
-Cobertura requerida: **≥ 90 %**.
+
+## CI/CD
+El proyecto utiliza GitHub Actions para integración continua:
+
+- **Compilación automática** en cada push a `main` o pull request
+- **Ejecución de pruebas** unitarias y de integración
+- **Generación de informes de cobertura** de código
+- **Publicación de badges** con el porcentaje de cobertura
+
+El archivo de configuración se encuentra en `.github/workflows/ci.yml`.
 
 ## Estructura del Proyecto
 ```
 JokesApi/
-  Controllers/
-  Entities/
-  Data/
-  Services/
-  Notifications/
-JokesApi.Tests/
-  *.cs
+  Application/
+    Ports/         # Interfaces para adaptadores de salida
+    UseCases/      # Lógica de aplicación
+  Controllers/     # Controladores REST
+  Domain/
+    Repositories/  # Interfaces de repositorios
+  Entities/        # Modelos de dominio
+  Data/            # Contexto EF Core y migraciones
+  Infrastructure/  # Implementaciones de adaptadores
+    External/      # Clientes HTTP
+    Repositories/  # Repositorios EF Core
+  Middleware/      # Middleware personalizado
+  Services/        # Servicios de aplicación
+  Settings/        # Clases de configuración
+JokesApi.Tests/    # Pruebas unitarias y de integración
 ```
 
+## Seguridad
+El proyecto implementa varias capas de seguridad:
+
+- **Autenticación JWT** con tokens de acceso y refresh
+- **Rate limiting** para prevenir ataques de fuerza bruta
+  - Límite global de 60 peticiones por minuto a la API
+  - Límite específico de 10 intentos de login cada 5 minutos
+- **Bloqueo temporal** después de 5 intentos fallidos de login en 15 minutos
+- **HTTPS** en entornos de producción
+- **Validación de datos** en todos los endpoints
+
 ## Mejoras Futuras
-* Flow de refresh tokens y recuperación de contraseña.  
-* Rate-limiting y bloqueo de IP ante fuerza bruta.  
-* Paginación y ordenación en listas de chistes.  
-* Docker Compose con PostgreSQL.  
-* Pipeline CI (GitHub Actions) para compilar, testear y publicar cobertura.
+* Aumentar cobertura de pruebas al 90%
+* Implementar validación de revocación en middleware
+* Añadir paginación y ordenación en listas de chistes
+* Implementar cache distribuida con Redis
+* Añadir monitoreo con Application Insights o Prometheus
 
 ---
 © 2025 SquadMakers – Todos los derechos reservados. 

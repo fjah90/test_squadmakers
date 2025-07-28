@@ -7,6 +7,8 @@
 2. [Architecture](#architecture)
 3. [Prerequisites](#prerequisites)
 4. [Getting Started](#getting-started)
+   1. [Local run](#local-run)
+   2. [Run with Docker](#run-with-docker)
 5. [Configuration](#configuration)
 6. [REST API Reference](#rest-api-reference)
    1. [Authentication Endpoints](#authentication-endpoints)
@@ -14,8 +16,10 @@
    3. [Joke Endpoints](#joke-endpoints)
    4. [Math Endpoints](#math-endpoints)
 7. [Running Tests](#running-tests)
-8. [Project Structure](#project-structure)
-9. [Further Improvements](#further-improvements)
+8. [CI/CD](#cicd)
+9. [Project Structure](#project-structure)
+10. [Security](#security)
+11. [Further Improvements](#further-improvements)
 
 ---
 
@@ -34,7 +38,7 @@ This project delivers **Exercise 1** (Authentication & Authorization) and **Exer
   * Executes parallel HTTP requests with `HttpClientFactory` and `async/await`.
 
 ## Architecture
-Clean Architecture with clear separation of concerns.
+Hexagonal Architecture with clear separation of concerns.
 
 ```
 ┌──────────────────────────┐
@@ -53,8 +57,10 @@ Clean Architecture with clear separation of concerns.
 * .NET 8.0 SDK (LTS)
 * PowerShell 7 (Windows 11)
 * Google / GitHub OAuth app credentials (for external login)
+* Docker (for running with Docker)
 
 ## Getting Started
+### Local run
 ```pwsh
 # Restore & build
  dotnet restore
@@ -68,6 +74,16 @@ Clean Architecture with clear separation of concerns.
 ```
 Open the generated Swagger UI to explore endpoints.
 
+### Run with Docker
+```pwsh
+# Build Docker image
+ dotnet publish -c Release -o ./publish
+ docker build -t jokesapi .
+
+# Run Docker container
+ docker run -p 5278:80 -e ASPNETCORE_ENVIRONMENT=Development jokesapi
+```
+
 ## Configuration
 Key sections of `appsettings.json`:
 ```jsonc
@@ -77,6 +93,22 @@ Key sections of `appsettings.json`:
     "Audience": "JokesApiClient",
     "Key": "YOUR_SUPER_SECRET_KEY",
     "ExpirationMinutes": 60
+  },
+  "ConnectionStrings": {
+    "Default": "Data Source=jokes.db"
+  },
+  "IpRateLimiting": {
+    "EnableEndpointRateLimiting": true,
+    "StackBlockedRequests": true,
+    "RealIpHeader": "X-Real-IP",
+    "ClientWhitelist": [],
+    "GeneralRules": [
+      {
+        "Endpoint": "*",
+        "Period": "1s",
+        "Limit": 10
+      }
+    ]
   }
 }
 ```
@@ -91,6 +123,8 @@ All endpoints that modify state or expose sensitive data are **JWT-protected** u
 | GET | `/api/auth/external/google-login` | Public | Redirect to Google OAuth. |
 | GET | `/api/auth/external/github-login` | Public | Redirect to GitHub OAuth. |
 | GET | `/api/auth/external/callback` | Public | OAuth callback; issues internal JWT. |
+| POST | `/api/auth/refresh-token` | Protected | Issues a new JWT using a refresh token. |
+| POST | `/api/auth/revoke-token` | Protected | Revokes the current refresh token. |
 
 ### User Endpoints
 | Method | Route | Role(s) | Description |
@@ -125,6 +159,13 @@ cd JokesApi.Tests
 ```
 Required coverage: **≥ 90 %**.
 
+## CI/CD
+GitHub Actions workflow:
+1. Build: `dotnet build`
+2. Test: `dotnet test /p:CollectCoverage=true /p:CoverletOutputFormat=opencover`
+3. Publish: `dotnet publish -c Release -o ./publish`
+4. Docker: `docker build -t jokesapi .`
+
 ## Project Structure
 ```
 JokesApi/
@@ -136,6 +177,15 @@ JokesApi/
 JokesApi.Tests/
   *.cs
 ```
+
+## Security
+* JWT authentication & authorization.
+* Rate limiting (IP-based and endpoint-based).
+* Secure password hashing.
+* Cross-site scripting (XSS) protection.
+* Cross-site request forgery (CSRF) protection.
+* Input validation.
+* Secure cookie settings.
 
 ## Further Improvements
 * Refresh tokens & password reset flow.  
