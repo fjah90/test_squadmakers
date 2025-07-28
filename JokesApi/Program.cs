@@ -17,6 +17,7 @@ using JokesApi.Application.UseCases;
 using AspNetCoreRateLimit;
 using Microsoft.AspNetCore.RateLimiting;
 using System.Threading.RateLimiting;
+using Microsoft.OpenApi.Models;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -25,19 +26,34 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(options =>
 {
-    options.SwaggerDoc("v1", new Microsoft.OpenApi.Models.OpenApiInfo { Title = "Jokes API", Version = "v1" });
+    options.SwaggerDoc("v1", new OpenApiInfo 
+    { 
+        Title = "Jokes API", 
+        Version = "v1",
+        Description = "API for managing jokes from multiple sources with user authentication",
+        Contact = new OpenApiContact
+        {
+            Name = "API Support",
+            Email = "support@jokesapi.com"
+        },
+        License = new OpenApiLicense
+        {
+            Name = "MIT License",
+            Url = new Uri("https://opensource.org/licenses/MIT")
+        }
+    });
 
-    var securityScheme = new Microsoft.OpenApi.Models.OpenApiSecurityScheme
+    var securityScheme = new OpenApiSecurityScheme
     {
         Name = "Authorization",
-        Type = Microsoft.OpenApi.Models.SecuritySchemeType.Http,
+        Type = SecuritySchemeType.Http,
         Scheme = "bearer",
         BearerFormat = "JWT",
-        In = Microsoft.OpenApi.Models.ParameterLocation.Header,
+        In = ParameterLocation.Header,
         Description = "Enter JWT like: Bearer {token}"
     };
     options.AddSecurityDefinition("Bearer", securityScheme);
-    options.AddSecurityRequirement(new Microsoft.OpenApi.Models.OpenApiSecurityRequirement
+    options.AddSecurityRequirement(new OpenApiSecurityRequirement
     {
         { securityScheme, new[] { "Bearer" } }
     });
@@ -46,6 +62,9 @@ builder.Services.AddSwaggerGen(options =>
     var xmlPath = System.IO.Path.Combine(AppContext.BaseDirectory, "JokesApi.xml");
     if (System.IO.File.Exists(xmlPath))
         options.IncludeXmlComments(xmlPath);
+
+    // Enable Swagger annotations
+    options.EnableAnnotations();
 
     // add lock icon automatically to [Authorize] endpoints
     options.OperationFilter<JokesApi.Swagger.AuthorizeCheckOperationFilter>();
@@ -180,7 +199,14 @@ var app = builder.Build();
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
-    app.UseSwaggerUI();
+    app.UseSwaggerUI(c =>
+    {
+        c.SwaggerEndpoint("/swagger/v1/swagger.json", "Jokes API v1");
+        c.RoutePrefix = string.Empty; // Set Swagger UI at app root
+        c.DocExpansion(Swashbuckle.AspNetCore.SwaggerUI.DocExpansion.None);
+        c.EnableFilter();
+        c.DisplayRequestDuration();
+    });
 }
 
 // Redirect to HTTPS only in non-development environments so local HTTP Swagger works.
