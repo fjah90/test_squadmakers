@@ -1,0 +1,13 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <LangVersion>latest</LangVersion>
+    <Nullable>enable</Nullable>
+    <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
+    <ImplicitUsings>enable</ImplicitUsings>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="..\JokesApi\Entities\*.cs" Link="Entities\%(Filename)%(Extension)" />
+    <Compile Include="..\JokesApi\Domain\Repositories\**\*.cs" Link="Domain\Repositories\%(Filename)%(Extension)" />
+  </ItemGroup>
+</Project> 

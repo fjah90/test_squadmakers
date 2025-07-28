@@ -28,4 +28,25 @@ public class MathControllerTests
         Assert.NotNull(p);
         Assert.Equal(8, (int)p!.GetValue(val)!);
     }
+
+    [Fact]
+    public void Add_ReturnsSum()
+    {
+        var result = _controller.Add(2,3) as OkObjectResult;
+        Assert.Equal(5, result!.Value);
+    }
+
+    [Fact]
+    public void Subtract_ReturnsDifference()
+    {
+        var result = _controller.Subtract(7,4) as OkObjectResult;
+        Assert.Equal(3, result!.Value);
+    }
+
+    [Fact]
+    public void Multiply_ReturnsProduct()
+    {
+        var result = _controller.Multiply(6,4) as OkObjectResult;
+        Assert.Equal(24, result!.Value);
+    }
 } 

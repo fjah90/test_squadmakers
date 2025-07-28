@@ -244,12 +244,12 @@ namespace JokesApi.Tests
             // Assert
             var statusCodeResult = Assert.IsType<ObjectResult>(result);
             Assert.Equal(500, statusCodeResult.StatusCode);
-        }
+    }
 
-        [Fact]
+    [Fact]
         public async Task Filter_WithMultipleFilters_FiltersCorrectly()
-        {
-            // Arrange
+    {
+        // Arrange
             var authorId = Guid.NewGuid();
             var themeId = Guid.NewGuid();
             var theme = new Theme { Id = themeId, Name = "Programación" };
@@ -290,19 +290,19 @@ namespace JokesApi.Tests
             mockJokeRepo.Setup(r => r.Query).Returns(mockDbSet.Object);
             _mockUnitOfWork.Setup(u => u.Jokes).Returns(mockJokeRepo.Object);
 
-            // Act
+        // Act
             var result = await _controller.Filter(
                 minPalabras: 5,
                 contiene: "programación",
                 autorId: authorId,
                 tematicaId: themeId);
 
-            // Assert
+        // Assert
             var statusCodeResult = Assert.IsType<ObjectResult>(result);
             Assert.Equal(500, statusCodeResult.StatusCode);
-        }
+    }
 
-        [Fact]
+    [Fact]
         public async Task Filter_WithException_Returns500()
         {
             // Arrange
@@ -333,4 +333,4 @@ namespace JokesApi.Tests
             return mockSet;
         }
     }
-}
+} 

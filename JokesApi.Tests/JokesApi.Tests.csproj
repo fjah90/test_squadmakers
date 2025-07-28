@@ -14,13 +14,23 @@
     <PackageReference Include="xunit" Version="2.9.2" />
     <PackageReference Include="xunit.runner.visualstudio" Version="2.8.2" />
     <PackageReference Include="Moq" Version="4.20.72" />
-    <PackageReference Include="coverlet.collector" Version="6.0.4">
-      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-      <PrivateAssets>all</PrivateAssets>
-    </PackageReference>
     <PackageReference Include="Microsoft.EntityFrameworkCore.InMemory" Version="9.0.7" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\JokesApi\JokesApi.csproj" />
+    <ProjectReference Include="..\JokesApi.Application\JokesApi.Application.csproj" />
+    <ProjectReference Include="..\JokesApi.Domain\JokesApi.Domain.csproj" />
   </ItemGroup>
+  <PropertyGroup>
+    <CollectCoverage>true</CollectCoverage>
+    <CoverletOutputFormat>cobertura</CoverletOutputFormat>
+    <Include>
+      [JokesApi.Application]*;
+      [JokesApi.Domain]*;
+    </Include>
+    <Exclude>
+      [JokesApi]*;
+      [JokesApi.Tests]*;
+    </Exclude>
+  </PropertyGroup>
 </Project> 

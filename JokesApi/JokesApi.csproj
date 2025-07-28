@@ -10,6 +10,17 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="Application\**\*.cs" />
+    <Compile Remove="Application\Ports\*.cs" />
+    <Compile Remove="Entities\*.cs" />
+    <Compile Remove="Domain\Repositories\**\*.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\JokesApi.Application\JokesApi.Application.csproj" />
+    <ProjectReference Include="..\JokesApi.Domain\JokesApi.Domain.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="AspNet.Security.OAuth.GitHub" Version="5.0.7" />
     <PackageReference Include="AspNetCoreRateLimit" Version="5.0.0" />
     <PackageReference Include="BCrypt.Net-Next" Version="4.0.3" />
