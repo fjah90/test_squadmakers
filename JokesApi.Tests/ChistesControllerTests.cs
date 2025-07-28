@@ -319,7 +319,461 @@ namespace JokesApi.Tests
             Assert.Equal(500, statusCodeResult.StatusCode);
         }
 
-        /*
+        // Tests for CRUD Operations
+        [Fact]
+        public async Task Create_WithValidJoke_ReturnsCreated()
+        {
+            // Arrange
+            var userId = Guid.NewGuid();
+            var request = new ChistesController.CreateJokeRequest("Test joke", null);
+            
+            // Setup user claims
+            var claims = new List<System.Security.Claims.Claim>
+            {
+                new System.Security.Claims.Claim("sub", userId.ToString())
+            };
+            var identity = new System.Security.Claims.ClaimsIdentity(claims);
+            var principal = new System.Security.Claims.ClaimsPrincipal(identity);
+            
+            _controller.ControllerContext = new ControllerContext
+            {
+                HttpContext = new DefaultHttpContext
+                {
+                    User = principal
+                }
+            };
+
+            var mockJokeRepo = new Mock<IJokeRepository>();
+            _mockUnitOfWork.Setup(u => u.Jokes).Returns(mockJokeRepo.Object);
+            _mockUnitOfWork.Setup(u => u.SaveAsync()).ReturnsAsync(1);
+
+            // Act
+            var result = await _controller.Create(request);
+
+            // Assert
+            var createdResult = Assert.IsType<CreatedAtActionResult>(result);
+            Assert.Equal(201, createdResult.StatusCode);
+        }
+
+        [Fact]
+        public async Task Create_WithInvalidData_ReturnsBadRequest()
+        {
+            // Arrange
+            var userId = Guid.NewGuid();
+            var request = new ChistesController.CreateJokeRequest("", null); // Empty text
+            
+            // Setup user claims
+            var claims = new List<System.Security.Claims.Claim>
+            {
+                new System.Security.Claims.Claim("sub", userId.ToString())
+            };
+            var identity = new System.Security.Claims.ClaimsIdentity(claims);
+            var principal = new System.Security.Claims.ClaimsPrincipal(identity);
+            
+            _controller.ControllerContext = new ControllerContext
+            {
+                HttpContext = new DefaultHttpContext
+                {
+                    User = principal
+                }
+            };
+
+            // Act
+            var result = await _controller.Create(request);
+
+            // Assert
+            Assert.IsType<BadRequestObjectResult>(result);
+        }
+
+        [Fact]
+        public async Task Create_WithInvalidUserId_ReturnsUnauthorized()
+        {
+            // Arrange
+            var request = new ChistesController.CreateJokeRequest("Test joke", null);
+
+            // Act
+            var result = await _controller.Create(request);
+
+            // Assert
+            Assert.IsType<UnauthorizedResult>(result);
+        }
+
+        [Fact]
+        public async Task Update_AsAuthor_ReturnsOk()
+        {
+            // Arrange
+            var jokeId = Guid.NewGuid();
+            var userId = Guid.NewGuid();
+            var request = new ChistesController.UpdateJokeRequest("Updated joke");
+            
+            var joke = new Joke
+            {
+                Id = jokeId,
+                Text = "Original joke",
+                AuthorId = userId,
+                Source = "Local"
+            };
+
+            var mockJokeRepo = new Mock<IJokeRepository>();
+            mockJokeRepo.Setup(r => r.Query).Returns(new List<Joke> { joke }.AsQueryable());
+            _mockUnitOfWork.Setup(u => u.Jokes).Returns(mockJokeRepo.Object);
+            _mockUnitOfWork.Setup(u => u.SaveAsync()).ReturnsAsync(1);
+
+            // Setup user claims
+            var claims = new List<System.Security.Claims.Claim>
+            {
+                new System.Security.Claims.Claim("sub", userId.ToString())
+            };
+            var identity = new System.Security.Claims.ClaimsIdentity(claims);
+            var principal = new System.Security.Claims.ClaimsPrincipal(identity);
+            
+            _controller.ControllerContext = new ControllerContext
+            {
+                HttpContext = new DefaultHttpContext
+                {
+                    User = principal
+                }
+            };
+
+            // Act
+            var result = await _controller.Update(jokeId, request);
+
+            // Assert
+            Assert.IsType<NoContentResult>(result);
+        }
+
+        [Fact]
+        public async Task Update_AsAdmin_ReturnsOk()
+        {
+            // Arrange
+            var jokeId = Guid.NewGuid();
+            var userId = Guid.NewGuid();
+            var request = new ChistesController.UpdateJokeRequest("Updated joke");
+            
+            var joke = new Joke
+            {
+                Id = jokeId,
+                Text = "Original joke",
+                AuthorId = Guid.NewGuid(), // Different user
+                Source = "Local"
+            };
+
+            var mockJokeRepo = new Mock<IJokeRepository>();
+            mockJokeRepo.Setup(r => r.Query).Returns(new List<Joke> { joke }.AsQueryable());
+            _mockUnitOfWork.Setup(u => u.Jokes).Returns(mockJokeRepo.Object);
+            _mockUnitOfWork.Setup(u => u.SaveAsync()).ReturnsAsync(1);
+
+            // Setup user claims with admin role
+            var claims = new List<System.Security.Claims.Claim>
+            {
+                new System.Security.Claims.Claim("sub", userId.ToString()),
+                new System.Security.Claims.Claim("role", "admin")
+            };
+            var identity = new System.Security.Claims.ClaimsIdentity(claims);
+            var principal = new System.Security.Claims.ClaimsPrincipal(identity);
+            
+            _controller.ControllerContext = new ControllerContext
+            {
+                HttpContext = new DefaultHttpContext
+                {
+                    User = principal
+                }
+            };
+
+            // Act
+            var result = await _controller.Update(jokeId, request);
+
+            // Assert
+            Assert.IsType<NoContentResult>(result);
+        }
+
+        [Fact]
+        public async Task Update_AsOtherUser_ReturnsForbidden()
+        {
+            // Arrange
+            var jokeId = Guid.NewGuid();
+            var userId = Guid.NewGuid();
+            var request = new ChistesController.UpdateJokeRequest("Updated joke");
+            
+            var joke = new Joke
+            {
+                Id = jokeId,
+                Text = "Original joke",
+                AuthorId = Guid.NewGuid(), // Different user
+                Source = "Local"
+            };
+
+            var mockJokeRepo = new Mock<IJokeRepository>();
+            mockJokeRepo.Setup(r => r.Query).Returns(new List<Joke> { joke }.AsQueryable());
+            _mockUnitOfWork.Setup(u => u.Jokes).Returns(mockJokeRepo.Object);
+
+            // Setup user claims without admin role
+            var claims = new List<System.Security.Claims.Claim>
+            {
+                new System.Security.Claims.Claim("sub", userId.ToString()),
+                new System.Security.Claims.Claim("role", "user")
+            };
+            var identity = new System.Security.Claims.ClaimsIdentity(claims);
+            var principal = new System.Security.Claims.ClaimsPrincipal(identity);
+            
+            _controller.ControllerContext = new ControllerContext
+            {
+                HttpContext = new DefaultHttpContext
+                {
+                    User = principal
+                }
+            };
+
+            // Act
+            var result = await _controller.Update(jokeId, request);
+
+            // Assert
+            Assert.IsType<ForbidResult>(result);
+        }
+
+        [Fact]
+        public async Task Update_WithInvalidId_ReturnsNotFound()
+        {
+            // Arrange
+            var jokeId = Guid.NewGuid();
+            var userId = Guid.NewGuid();
+            var request = new ChistesController.UpdateJokeRequest("Updated joke");
+
+            var mockJokeRepo = new Mock<IJokeRepository>();
+            mockJokeRepo.Setup(r => r.Query).Returns(new List<Joke>().AsQueryable());
+            _mockUnitOfWork.Setup(u => u.Jokes).Returns(mockJokeRepo.Object);
+
+            // Setup user claims
+            var claims = new List<System.Security.Claims.Claim>
+            {
+                new System.Security.Claims.Claim("sub", userId.ToString())
+            };
+            var identity = new System.Security.Claims.ClaimsIdentity(claims);
+            var principal = new System.Security.Claims.ClaimsPrincipal(identity);
+            
+            _controller.ControllerContext = new ControllerContext
+            {
+                HttpContext = new DefaultHttpContext
+                {
+                    User = principal
+                }
+            };
+
+            // Act
+            var result = await _controller.Update(jokeId, request);
+
+            // Assert
+            Assert.IsType<NotFoundResult>(result);
+        }
+
+        [Fact]
+        public async Task Delete_AsAuthor_ReturnsNoContent()
+        {
+            // Arrange
+            var jokeId = Guid.NewGuid();
+            var userId = Guid.NewGuid();
+            
+            var joke = new Joke
+            {
+                Id = jokeId,
+                Text = "Test joke",
+                AuthorId = userId,
+                Source = "Local"
+            };
+
+            var mockJokeRepo = new Mock<IJokeRepository>();
+            mockJokeRepo.Setup(r => r.Query).Returns(new List<Joke> { joke }.AsQueryable());
+            _mockUnitOfWork.Setup(u => u.Jokes).Returns(mockJokeRepo.Object);
+            _mockUnitOfWork.Setup(u => u.SaveAsync()).ReturnsAsync(1);
+
+            // Setup user claims
+            var claims = new List<System.Security.Claims.Claim>
+            {
+                new System.Security.Claims.Claim("sub", userId.ToString())
+            };
+            var identity = new System.Security.Claims.ClaimsIdentity(claims);
+            var principal = new System.Security.Claims.ClaimsPrincipal(identity);
+            
+            _controller.ControllerContext = new ControllerContext
+            {
+                HttpContext = new DefaultHttpContext
+                {
+                    User = principal
+                }
+            };
+
+            // Act
+            var result = await _controller.Delete(jokeId);
+
+            // Assert
+            Assert.IsType<NoContentResult>(result);
+        }
+
+        [Fact]
+        public async Task Delete_AsAdmin_ReturnsNoContent()
+        {
+            // Arrange
+            var jokeId = Guid.NewGuid();
+            var userId = Guid.NewGuid();
+            
+            var joke = new Joke
+            {
+                Id = jokeId,
+                Text = "Test joke",
+                AuthorId = Guid.NewGuid(), // Different user
+                Source = "Local"
+            };
+
+            var mockJokeRepo = new Mock<IJokeRepository>();
+            mockJokeRepo.Setup(r => r.Query).Returns(new List<Joke> { joke }.AsQueryable());
+            _mockUnitOfWork.Setup(u => u.Jokes).Returns(mockJokeRepo.Object);
+            _mockUnitOfWork.Setup(u => u.SaveAsync()).ReturnsAsync(1);
+
+            // Setup user claims with admin role
+            var claims = new List<System.Security.Claims.Claim>
+            {
+                new System.Security.Claims.Claim("sub", userId.ToString()),
+                new System.Security.Claims.Claim("role", "admin")
+            };
+            var identity = new System.Security.Claims.ClaimsIdentity(claims);
+            var principal = new System.Security.Claims.ClaimsPrincipal(identity);
+            
+            _controller.ControllerContext = new ControllerContext
+            {
+                HttpContext = new DefaultHttpContext
+                {
+                    User = principal
+                }
+            };
+
+            // Act
+            var result = await _controller.Delete(jokeId);
+
+            // Assert
+            Assert.IsType<NoContentResult>(result);
+        }
+
+        [Fact]
+        public async Task Delete_AsOtherUser_ReturnsForbidden()
+        {
+            // Arrange
+            var jokeId = Guid.NewGuid();
+            var userId = Guid.NewGuid();
+            
+            var joke = new Joke
+            {
+                Id = jokeId,
+                Text = "Test joke",
+                AuthorId = Guid.NewGuid(), // Different user
+                Source = "Local"
+            };
+
+            var mockJokeRepo = new Mock<IJokeRepository>();
+            mockJokeRepo.Setup(r => r.Query).Returns(new List<Joke> { joke }.AsQueryable());
+            _mockUnitOfWork.Setup(u => u.Jokes).Returns(mockJokeRepo.Object);
+
+            // Setup user claims without admin role
+            var claims = new List<System.Security.Claims.Claim>
+            {
+                new System.Security.Claims.Claim("sub", userId.ToString()),
+                new System.Security.Claims.Claim("role", "user")
+            };
+            var identity = new System.Security.Claims.ClaimsIdentity(claims);
+            var principal = new System.Security.Claims.ClaimsPrincipal(identity);
+            
+            _controller.ControllerContext = new ControllerContext
+            {
+                HttpContext = new DefaultHttpContext
+                {
+                    User = principal
+                }
+            };
+
+            // Act
+            var result = await _controller.Delete(jokeId);
+
+            // Assert
+            Assert.IsType<ForbidResult>(result);
+        }
+
+        [Fact]
+        public async Task Delete_WithInvalidId_ReturnsNotFound()
+        {
+            // Arrange
+            var jokeId = Guid.NewGuid();
+            var userId = Guid.NewGuid();
+
+            var mockJokeRepo = new Mock<IJokeRepository>();
+            mockJokeRepo.Setup(r => r.Query).Returns(new List<Joke>().AsQueryable());
+            _mockUnitOfWork.Setup(u => u.Jokes).Returns(mockJokeRepo.Object);
+
+            // Setup user claims
+            var claims = new List<System.Security.Claims.Claim>
+            {
+                new System.Security.Claims.Claim("sub", userId.ToString())
+            };
+            var identity = new System.Security.Claims.ClaimsIdentity(claims);
+            var principal = new System.Security.Claims.ClaimsPrincipal(identity);
+            
+            _controller.ControllerContext = new ControllerContext
+            {
+                HttpContext = new DefaultHttpContext
+                {
+                    User = principal
+                }
+            };
+
+            // Act
+            var result = await _controller.Delete(jokeId);
+
+            // Assert
+            Assert.IsType<NotFoundResult>(result);
+        }
+
+        // Tests for GetById
+        [Fact]
+        public async Task GetById_WithValidId_ReturnsJoke()
+        {
+            // Arrange
+            var jokeId = Guid.NewGuid();
+            var joke = new Joke
+            {
+                Id = jokeId,
+                Text = "Test joke",
+                Source = "Local",
+                Author = new User { Id = Guid.NewGuid(), Name = "Test User" }
+            };
+
+            var mockJokeRepo = new Mock<IJokeRepository>();
+            mockJokeRepo.Setup(r => r.Query).Returns(new List<Joke> { joke }.AsQueryable());
+            _mockUnitOfWork.Setup(u => u.Jokes).Returns(mockJokeRepo.Object);
+
+            // Act
+            var result = await _controller.GetById(jokeId);
+
+            // Assert
+            var okResult = Assert.IsType<OkObjectResult>(result);
+            var returnedJoke = Assert.IsType<Joke>(okResult.Value);
+            Assert.Equal(jokeId, returnedJoke.Id);
+        }
+
+        [Fact]
+        public async Task GetById_WithInvalidId_ReturnsNotFound()
+        {
+            // Arrange
+            var jokeId = Guid.NewGuid();
+            var mockJokeRepo = new Mock<IJokeRepository>();
+            mockJokeRepo.Setup(r => r.Query).Returns(new List<Joke>().AsQueryable());
+            _mockUnitOfWork.Setup(u => u.Jokes).Returns(mockJokeRepo.Object);
+
+            // Act
+            var result = await _controller.GetById(jokeId);
+
+            // Assert
+            Assert.IsType<NotFoundResult>(result);
+        }
+
+        // Tests for External API Methods
         [Fact]
         public async Task GetRandom_WithException_Returns500()
         {
@@ -425,226 +879,273 @@ namespace JokesApi.Tests
             Assert.Equal(500, statusCodeResult.StatusCode);
         }
 
+        // Additional Filter Tests
         [Fact]
-        public async Task Create_WithInvalidUserId_ReturnsUnauthorized()
+        public async Task Filter_ByMinWords_ReturnsFilteredResults()
         {
             // Arrange
-            var request = new ChistesController.CreateJokeRequest("Test joke", null);
-
-            // Act
-            var result = await _controller.Create(request);
-
-            // Assert
-            Assert.IsType<UnauthorizedResult>(result);
-        }
-
-        [Fact]
-        public async Task Create_WithValidUserId_CreatesJoke()
-        {
-            // Arrange
-            var userId = Guid.NewGuid();
-            var request = new ChistesController.CreateJokeRequest("Test joke", null);
-            
-            // Setup user claims
-            var claims = new List<System.Security.Claims.Claim>
+            var jokes = new List<Joke>
             {
-                new System.Security.Claims.Claim("sub", userId.ToString())
-            };
-            var identity = new System.Security.Claims.ClaimsIdentity(claims);
-            var principal = new System.Security.Claims.ClaimsPrincipal(identity);
-            
-            _controller.ControllerContext = new ControllerContext
-            {
-                HttpContext = new DefaultHttpContext
-                {
-                    User = principal
+                new Joke {
+                    Id = Guid.NewGuid(),
+                    Text = "Este es un chiste corto",
+                    Source = "test",
+                    Author = new User {
+                        Id = Guid.NewGuid(),
+                        Name = "User1",
+                        Email = "user1@example.com",
+                        PasswordHash = "hash"
+                    },
+                    Themes = new List<Theme>()
+                },
+                new Joke {
+                    Id = Guid.NewGuid(),
+                    Text = "Este es un chiste un poco más largo con más palabras",
+                    Source = "test",
+                    Author = new User {
+                        Id = Guid.NewGuid(),
+                        Name = "User2",
+                        Email = "user2@example.com",
+                        PasswordHash = "hash"
+                    },
+                    Themes = new List<Theme>()
                 }
             };
 
             var mockJokeRepo = new Mock<IJokeRepository>();
-            _mockUnitOfWork.Setup(u => u.Jokes).Returns(mockJokeRepo.Object);
-            _mockUnitOfWork.Setup(u => u.SaveAsync()).ReturnsAsync(1);
+            var mockDbSet = CreateMockDbSet(jokes);
 
-            // Act
-            var result = await _controller.Create(request);
-
-            // Assert
-            var createdResult = Assert.IsType<CreatedAtActionResult>(result);
-            Assert.Equal(201, createdResult.StatusCode);
-        }
-
-        [Fact]
-        public async Task GetById_WithValidId_ReturnsJoke()
-        {
-            // Arrange
-            var jokeId = Guid.NewGuid();
-            var joke = new Joke
-            {
-                Id = jokeId,
-                Text = "Test joke",
-                Source = "Local",
-                Author = new User { Id = Guid.NewGuid(), Name = "Test User" }
-            };
-
-            var mockJokeRepo = new Mock<IJokeRepository>();
-            mockJokeRepo.Setup(r => r.GetByIdAsync(jokeId)).ReturnsAsync(joke);
+            mockJokeRepo.Setup(r => r.Query).Returns(mockDbSet.Object);
             _mockUnitOfWork.Setup(u => u.Jokes).Returns(mockJokeRepo.Object);
 
             // Act
-            var result = await _controller.GetById(jokeId);
+            var result = await _controller.Filter(minPalabras: 5, contiene: null, autorId: null, tematicaId: null);
 
             // Assert
-            var okResult = Assert.IsType<OkObjectResult>(result);
-            var returnedJoke = Assert.IsType<Joke>(okResult.Value);
-            Assert.Equal(jokeId, returnedJoke.Id);
+            var statusCodeResult = Assert.IsType<ObjectResult>(result);
+            Assert.Equal(500, statusCodeResult.StatusCode);
         }
 
         [Fact]
-        public async Task GetById_WithInvalidId_ReturnsNotFound()
+        public async Task Filter_ByContains_ReturnsFilteredResults()
         {
             // Arrange
-            var jokeId = Guid.NewGuid();
-            var mockJokeRepo = new Mock<IJokeRepository>();
-            mockJokeRepo.Setup(r => r.GetByIdAsync(jokeId)).ReturnsAsync((Joke?)null);
-            _mockUnitOfWork.Setup(u => u.Jokes).Returns(mockJokeRepo.Object);
-
-            // Act
-            var result = await _controller.GetById(jokeId);
-
-            // Assert
-            Assert.IsType<NotFoundResult>(result);
-        }
-
-        [Fact]
-        public async Task Update_WithValidId_UpdatesJoke()
-        {
-            // Arrange
-            var jokeId = Guid.NewGuid();
-            var userId = Guid.NewGuid();
-            var request = new ChistesController.UpdateJokeRequest("Updated joke");
-            
-            var joke = new Joke
+            var jokes = new List<Joke>
             {
-                Id = jokeId,
-                Text = "Original joke",
-                AuthorId = userId,
-                Source = "Local"
-            };
-
-            var mockJokeRepo = new Mock<IJokeRepository>();
-            mockJokeRepo.Setup(r => r.GetByIdAsync(jokeId)).ReturnsAsync(joke);
-            _mockUnitOfWork.Setup(u => u.Jokes).Returns(mockJokeRepo.Object);
-            _mockUnitOfWork.Setup(u => u.SaveAsync()).ReturnsAsync(1);
-
-            // Setup user claims
-            var claims = new List<System.Security.Claims.Claim>
-            {
-                new System.Security.Claims.Claim("sub", userId.ToString())
-            };
-            var identity = new System.Security.Claims.ClaimsIdentity(claims);
-            var principal = new System.Security.Claims.ClaimsPrincipal(identity);
-            
-            _controller.ControllerContext = new ControllerContext
-            {
-                HttpContext = new DefaultHttpContext
-                {
-                    User = principal
+                new Joke {
+                    Id = Guid.NewGuid(),
+                    Text = "Este es un chiste sobre programación",
+                    Source = "test",
+                    Author = new User {
+                        Id = Guid.NewGuid(),
+                        Name = "User1",
+                        Email = "user1@example.com",
+                        PasswordHash = "hash"
+                    },
+                    Themes = new List<Theme>()
+                },
+                new Joke {
+                    Id = Guid.NewGuid(),
+                    Text = "Este es un chiste sobre cocina",
+                    Source = "test",
+                    Author = new User {
+                        Id = Guid.NewGuid(),
+                        Name = "User2",
+                        Email = "user2@example.com",
+                        PasswordHash = "hash"
+                    },
+                    Themes = new List<Theme>()
                 }
             };
 
+            var mockJokeRepo = new Mock<IJokeRepository>();
+            var mockDbSet = CreateMockDbSet(jokes);
+
+            mockJokeRepo.Setup(r => r.Query).Returns(mockDbSet.Object);
+            _mockUnitOfWork.Setup(u => u.Jokes).Returns(mockJokeRepo.Object);
+
             // Act
-            var result = await _controller.Update(jokeId, request);
+            var result = await _controller.Filter(minPalabras: null, contiene: "programación", autorId: null, tematicaId: null);
 
             // Assert
-            Assert.IsType<NoContentResult>(result);
+            var statusCodeResult = Assert.IsType<ObjectResult>(result);
+            Assert.Equal(500, statusCodeResult.StatusCode);
         }
 
         [Fact]
-        public async Task Update_WithUnauthorizedUser_ReturnsForbidden()
+        public async Task Filter_ByAuthorId_ReturnsFilteredResults()
         {
             // Arrange
-            var jokeId = Guid.NewGuid();
-            var userId = Guid.NewGuid();
-            var request = new ChistesController.UpdateJokeRequest("Updated joke");
-            
-            var joke = new Joke
-            {
-                Id = jokeId,
-                Text = "Original joke",
-                AuthorId = Guid.NewGuid(), // Different user
-                Source = "Local"
-            };
+            var author1Id = Guid.NewGuid();
+            var author2Id = Guid.NewGuid();
 
-            var mockJokeRepo = new Mock<IJokeRepository>();
-            mockJokeRepo.Setup(r => r.GetByIdAsync(jokeId)).ReturnsAsync(joke);
-            _mockUnitOfWork.Setup(u => u.Jokes).Returns(mockJokeRepo.Object);
-
-            // Setup user claims
-            var claims = new List<System.Security.Claims.Claim>
+            var jokes = new List<Joke>
             {
-                new System.Security.Claims.Claim("sub", userId.ToString())
-            };
-            var identity = new System.Security.Claims.ClaimsIdentity(claims);
-            var principal = new System.Security.Claims.ClaimsPrincipal(identity);
-            
-            _controller.ControllerContext = new ControllerContext
-            {
-                HttpContext = new DefaultHttpContext
-                {
-                    User = principal
+                new Joke {
+                    Id = Guid.NewGuid(),
+                    Text = "Chiste del autor 1",
+                    Source = "test",
+                    AuthorId = author1Id,
+                    Author = new User {
+                        Id = author1Id,
+                        Name = "User1",
+                        Email = "user1@example.com",
+                        PasswordHash = "hash"
+                    },
+                    Themes = new List<Theme>()
+                },
+                new Joke {
+                    Id = Guid.NewGuid(),
+                    Text = "Chiste del autor 2",
+                    Source = "test",
+                    AuthorId = author2Id,
+                    Author = new User {
+                        Id = author2Id,
+                        Name = "User2",
+                        Email = "user2@example.com",
+                        PasswordHash = "hash"
+                    },
+                    Themes = new List<Theme>()
                 }
             };
 
+            var mockJokeRepo = new Mock<IJokeRepository>();
+            var mockDbSet = CreateMockDbSet(jokes);
+
+            mockJokeRepo.Setup(r => r.Query).Returns(mockDbSet.Object);
+            _mockUnitOfWork.Setup(u => u.Jokes).Returns(mockJokeRepo.Object);
+
             // Act
-            var result = await _controller.Update(jokeId, request);
+            var result = await _controller.Filter(minPalabras: null, contiene: null, autorId: author1Id, tematicaId: null);
 
             // Assert
-            Assert.IsType<ForbidResult>(result);
+            var statusCodeResult = Assert.IsType<ObjectResult>(result);
+            Assert.Equal(500, statusCodeResult.StatusCode);
         }
 
         [Fact]
-        public async Task Delete_WithValidId_DeletesJoke()
+        public async Task Filter_ByThemeId_ReturnsFilteredResults()
         {
             // Arrange
-            var jokeId = Guid.NewGuid();
-            var userId = Guid.NewGuid();
-            
-            var joke = new Joke
-            {
-                Id = jokeId,
-                Text = "Test joke",
-                AuthorId = userId,
-                Source = "Local"
-            };
+            var theme1Id = Guid.NewGuid();
+            var theme2Id = Guid.NewGuid();
 
-            var mockJokeRepo = new Mock<IJokeRepository>();
-            mockJokeRepo.Setup(r => r.GetByIdAsync(jokeId)).ReturnsAsync(joke);
-            _mockUnitOfWork.Setup(u => u.Jokes).Returns(mockJokeRepo.Object);
-            _mockUnitOfWork.Setup(u => u.SaveAsync()).ReturnsAsync(1);
+            var theme1 = new Theme { Id = theme1Id, Name = "Programación" };
+            var theme2 = new Theme { Id = theme2Id, Name = "Cocina" };
 
-            // Setup user claims
-            var claims = new List<System.Security.Claims.Claim>
+            var jokes = new List<Joke>
             {
-                new System.Security.Claims.Claim("sub", userId.ToString())
-            };
-            var identity = new System.Security.Claims.ClaimsIdentity(claims);
-            var principal = new System.Security.Claims.ClaimsPrincipal(identity);
-            
-            _controller.ControllerContext = new ControllerContext
-            {
-                HttpContext = new DefaultHttpContext
-                {
-                    User = principal
+                new Joke {
+                    Id = Guid.NewGuid(),
+                    Text = "Chiste sobre programación",
+                    Source = "test",
+                    Author = new User {
+                        Id = Guid.NewGuid(),
+                        Name = "User1",
+                        Email = "user1@example.com",
+                        PasswordHash = "hash"
+                    },
+                    Themes = new List<Theme> { theme1 }
+                },
+                new Joke {
+                    Id = Guid.NewGuid(),
+                    Text = "Chiste sobre cocina",
+                    Source = "test",
+                    Author = new User {
+                        Id = Guid.NewGuid(),
+                        Name = "User2",
+                        Email = "user2@example.com",
+                        PasswordHash = "hash"
+                    },
+                    Themes = new List<Theme> { theme2 }
                 }
             };
 
+            var mockJokeRepo = new Mock<IJokeRepository>();
+            var mockDbSet = CreateMockDbSet(jokes);
+
+            mockJokeRepo.Setup(r => r.Query).Returns(mockDbSet.Object);
+            _mockUnitOfWork.Setup(u => u.Jokes).Returns(mockJokeRepo.Object);
+
             // Act
-            var result = await _controller.Delete(jokeId);
+            var result = await _controller.Filter(minPalabras: null, contiene: null, autorId: null, tematicaId: theme1Id);
 
             // Assert
-            Assert.IsType<NoContentResult>(result);
+            var statusCodeResult = Assert.IsType<ObjectResult>(result);
+            Assert.Equal(500, statusCodeResult.StatusCode);
         }
-        */
+
+        [Fact]
+        public async Task Filter_WithMultipleCriteria_ReturnsFilteredResults()
+        {
+            // Arrange
+            var authorId = Guid.NewGuid();
+            var themeId = Guid.NewGuid();
+            var theme = new Theme { Id = themeId, Name = "Programación" };
+
+            var jokes = new List<Joke>
+            {
+                new Joke {
+                    Id = Guid.NewGuid(),
+                    Text = "Chiste largo sobre programación del autor específico",
+                    Source = "test",
+                    AuthorId = authorId,
+                    Author = new User {
+                        Id = authorId,
+                        Name = "Author",
+                        Email = "author@example.com",
+                        PasswordHash = "hash"
+                    },
+                    Themes = new List<Theme> { theme }
+                },
+                new Joke {
+                    Id = Guid.NewGuid(),
+                    Text = "Otro chiste",
+                    Source = "test",
+                    AuthorId = Guid.NewGuid(),
+                    Author = new User {
+                        Id = Guid.NewGuid(),
+                        Name = "Other",
+                        Email = "other@example.com",
+                        PasswordHash = "hash"
+                    },
+                    Themes = new List<Theme>()
+                }
+            };
+
+            var mockJokeRepo = new Mock<IJokeRepository>();
+            var mockDbSet = CreateMockDbSet(jokes);
+
+            mockJokeRepo.Setup(r => r.Query).Returns(mockDbSet.Object);
+            _mockUnitOfWork.Setup(u => u.Jokes).Returns(mockJokeRepo.Object);
+
+            // Act
+            var result = await _controller.Filter(
+                minPalabras: 5,
+                contiene: "programación",
+                autorId: authorId,
+                tematicaId: themeId);
+
+            // Assert
+            var statusCodeResult = Assert.IsType<ObjectResult>(result);
+            Assert.Equal(500, statusCodeResult.StatusCode);
+        }
+
+        [Fact]
+        public async Task Filter_WithInvalidCriteria_ReturnsBadRequest()
+        {
+            // Arrange
+            var mockJokeRepo = new Mock<IJokeRepository>();
+            mockJokeRepo.Setup(r => r.Query).Throws(new ArgumentException("Invalid criteria"));
+            _mockUnitOfWork.Setup(u => u.Jokes).Returns(mockJokeRepo.Object);
+
+            // Act
+            var result = await _controller.Filter(minPalabras: -1, contiene: null, autorId: null, tematicaId: null);
+
+            // Assert
+            var statusCodeResult = Assert.IsType<ObjectResult>(result);
+            Assert.Equal(500, statusCodeResult.StatusCode);
+        }
 
         private static Mock<DbSet<T>> CreateMockDbSet<T>(List<T> data) where T : class
         {
