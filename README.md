@@ -1,215 +1,148 @@
-# Exercises 1 & 2 – Authentication, Authorization & Joke Management
+# Ejercicios 1 y 2 – Autenticación, Autorización y Gestión de Chistes
 
-## Table of Contents
-1. [Overview](#overview)
-2. [Architecture](#architecture)
-3. [Prerequisites](#prerequisites)
-4. [Getting Started](#getting-started)
-5. [Configuration](#configuration)
-6. [REST API Reference](#rest-api-reference)
-   1. [Authentication Endpoints](#authentication-endpoints)
-   2. [User Endpoints](#user-endpoints)
-   3. [Joke Endpoints](#joke-endpoints)
-7. [Running Tests](#running-tests)
-8. [Project Structure](#project-structure)
-9. [Further Improvements](#further-improvements)
+> Versión en inglés disponible en [`README_en.md`](README_en.md)
+
+## Tabla de Contenido
+1. [Descripción general](#descripción-general)
+2. [Arquitectura](#arquitectura)
+3. [Requisitos](#requisitos)
+4. [Puesta en marcha](#puesta-en-marcha)
+5. [Configuración](#configuración)
+6. [Referencia de la API REST](#referencia-de-la-api-rest)
+   1. [Endpoints de Autenticación](#endpoints-de-autenticación)
+   2. [Endpoints de Usuarios](#endpoints-de-usuarios)
+   3. [Endpoints de Chistes](#endpoints-de-chistes)
+   4. [Endpoints Matemáticos](#endpoints-matemáticos)
+7. [Ejecución de Pruebas](#ejecución-de-pruebas)
+8. [Estructura del Proyecto](#estructura-del-proyecto)
+9. [Mejoras Futuras](#mejoras-futuras)
 
 ---
 
-## Overview
-This sub-project delivers **Exercise 1** (Authentication & Authorization) and **Exercise 2** (Joke Management) of the challenge.
+## Descripción general
+Este proyecto entrega los **Ejercicios 1** (Autenticación y Autorización) y **2** (Gestión de Chistes).
 
-* **Exercise 1 – Authentication & Authorization**
-  * Local login issuing JSON Web Tokens (JWT).
-  * External OAuth 2.0 login via Google / GitHub (authorization code flow).
-  * Role-based access control (`user`, `admin`).
+* **Ejercicio 1 – Autenticación y Autorización**
+  * Inicio de sesión local que emite JSON Web Tokens (JWT).
+  * Inicio de sesión externo con OAuth 2.0 vía Google / GitHub (flujo authorization-code).
+  * Control de acceso basado en roles (`user`, `admin`).
 
-* **Exercise 2 – Joke Management**
-  * Fetches jokes from external APIs (Chuck Norris & Dad Joke).
-  * Persists local jokes with Entity Framework Core.
-  * Exposes CRUD & advanced filter endpoints.
-  * Executes parallel HTTP requests with `HttpClientFactory` and `async/await`.
+* **Ejercicio 2 – Gestión de Chistes**
+  * Obtiene chistes de APIs externas (Chuck Norris y Dad Joke).
+  * Persiste chistes locales con Entity Framework Core (SQLite por defecto).
+  * Expone endpoints CRUD y filtros avanzados.
+  * Ejecuta peticiones HTTP en paralelo con `HttpClientFactory` y `async/await`.
 
-## Architecture
-Clean Architecture with clear separation of concerns.
+## Arquitectura
+Clean Architecture con clara separación de responsabilidades.
 
 ```
 ┌──────────────────────────┐
-│        Controllers       │  <-- REST layer (ASP.NET Core MVC)
+│        Controllers       │  <-- Capa REST (ASP.NET Core MVC)
 ├──────────────────────────┤
-│     Application Layer    │  <-- Services / Use-cases
+│     Application Layer    │  <-- Servicios / Casos de uso
 ├──────────────────────────┤
 │      Infrastructure      │  <-- EF Core, HttpClientFactory, JWT, OAuth
 └──────────────────────────┘
 ```
 
-* **Dependency Injection** configured in `Program.cs`.
-* **Database**: SQLite by default (swapable by changing `ConnectionStrings:Default`).
+* Inyección de dependencias configurada en `Program.cs`.
+* Base de datos: SQLite por defecto (puede sustituirse vía `ConnectionStrings:Default`).
 
-## Prerequisites
+## Requisitos
 * .NET 8.0 SDK (LTS)
 * PowerShell 7 (Windows 11)
-* Google / GitHub OAuth app credentials (for external login)
+* Credenciales de apps OAuth (Google / GitHub) para login externo
 
-## Getting Started
+## Puesta en marcha
 ```pwsh
-# Restore & build
-cd Exercises1_2/JokesApi
-
-dotnet restore
-dotnet build
-
-# Apply EF Core migrations (SQLite)
-dotnet ef database update
-
-# Run API (https://localhost:7070 by default)
-dotnet run
-```
-Open the generated Swagger UI to explore endpoints.
-
-## Configuration
-Key sections of `appsettings.json`:
-```jsonc
-{
-  "ConnectionStrings": {
-    "Default": "Data Source=jokes.db" // replace with PostgreSQL if needed
-  },
-  "JwtSettings": {
-    "Issuer": "JokesApi",
-    "Audience": "JokesApiUsers",
-    "SecretKey": "YOUR_SUPER_SECRET_KEY",
-    "ExpirationMinutes": 60
-  },
-  "OAuth": {
-    "Google": {
-      "ClientId": "<id>",
-      "ClientSecret": "<secret>",
-      "CallbackUrl": "https://localhost:7070/api/auth/external/callback"
-    },
-    "GitHub": {
-      "ClientId": "<id>",
-      "ClientSecret": "<secret>"
-    }
-  }
-}
-```
-
-## REST API Reference
-All endpoints that modify state or expose sensitive data are **JWT-protected** unless stated otherwise.
-
-### Authentication Endpoints
-| Method | Route | Auth | Description |
-|--------|-------|------|-------------|
-| POST | `/api/auth/login` | Public | Local login; returns JWT. |
-| GET | `/api/auth/external/google-login` | Public | Redirect to Google OAuth. |
-| GET | `/api/auth/external/github-login` | Public | Redirect to GitHub OAuth. |
-| GET | `/api/auth/external/callback` | Public | OAuth callback; issues internal JWT. |
-
-### User Endpoints
-| Method | Route | Role(s) | Description |
-|--------|-------|---------|-------------|
-| GET | `/api/usuario` | `user`, `admin` | Returns current user info. |
-| GET | `/api/admin` | `admin` | Example admin-only endpoint. |
-
-### Joke Endpoints
-| Method | Route | Query / Body | Role(s) | Description |
-|--------|-------|--------------|---------|-------------|
-| GET | `/api/chistes/aleatorio` | `origen` (Chuck \| Dad \| Local) | Public | Returns a random joke from specified or random source. |
-| GET | `/api/chistes/emparejados` | – | `user`, `admin` | Returns 5 Chuck + 5 Dad jokes in parallel, paired & creatively combined. |
-| GET | `/api/chistes/combinado` | – | `user`, `admin` | Generates a composite joke from multiple sources. |
-| POST | `/api/chistes` | `{ "texto": "...", "origen": "Local" }` | `user`, `admin` | Creates a local joke; author = current user. |
-| GET | `/api/chistes/filtrar` | `minPalabras`, `contiene`, `autorId`, `tematicaId` | `user`, `admin` | Advanced filtering via LINQ. |
-| PUT | `/api/chistes/{id}` | `{ "texto": "updated" }` | author or `admin` | Updates joke text. |
-| DELETE | `/api/chistes/{id}` | – | author or `admin` | Removes a joke. |
-
-**External Sources**
-* Chuck Norris: `https://api.chucknorris.io/jokes/random`
-* Dad Joke: `https://icanhazdadjoke.com/` (requires `Accept: application/json`)
-
-## Running Tests
-```pwsh
-cd Exercises1_2/JokesApi.Tests
-dotnet test /p:CollectCoverage=true /p:CoverletOutputFormat="opencover"
-```
-Required coverage: **≥ 90 %**.
-
-## Project Structure
-```
-Exercises1_2/
-├── JokesApi/
-│   ├── Controllers/
-│   ├── Entities/
-│   ├── Services/
-│   ├── Notifications/        ← (shared types for Exercise 3 reference)
-│   ├── Settings/
-│   ├── Data/
-│   ├── Program.cs
-│   └── appsettings*.json
-├── JokesApi.Tests/
-│   ├── MathControllerTests.cs
-│   └── TokenServiceTests.cs
-└── README.md  ← you are here
-```
-
-## Further Improvements
-* Refresh tokens & password reset flow.
-* Rate-limiting & IP lockout for brute-force protection.
-* Pagination & ordering for joke lists.
-* Docker Compose with PostgreSQL.
-* CI pipeline (GitHub Actions) to build, test & publish coverage.
-
----
-© 2025 SquadMakers – All rights reserved. 
-
-## Guía Rápida en Español
-Las siguientes instrucciones están destinadas a usuarios finales que deseen probar la API sin profundizar en detalles técnicos.
-
-### Requisitos
-1. .NET 8 SDK instalado
-2. PowerShell 7
-
-### Pasos para ejecutar
-```powershell
-# Clonar el repositorio (o descargar ZIP)
-cd <ruta>
-
-# Restaurar dependencias y compilar
+# Restaurar y compilar
  dotnet restore
  dotnet build
 
-# Crear la base de datos SQLite y aplicar migraciones
- dotnet ef database update
+# Aplicar migraciones EF Core (SQLite)
+ dotnet ef database update --project JokesApi/JokesApi.csproj
 
-# Ejecutar la API
- dotnet run -p JokesApi/JokesApi.csproj
+# Ejecutar la API (http://localhost:5278 o https://localhost:7014)
+ dotnet run --project JokesApi/JokesApi.csproj
 ```
-La API quedará disponible en `https://localhost:7070`.
+Abre Swagger generado y explora los endpoints.
 
-### Variables de entorno
-Crea/edita el archivo `appsettings.Development.json` y reemplaza los valores marcados con `<>`.
+## Configuración
+Fragmento relevante de `appsettings.json`:
 ```jsonc
 {
   "JwtSettings": {
-    "SecretKey": "<CLAVE_SUPER_SECRETA>"
-  },
-  "Authentication": {
-    "Google": {
-      "ClientId": "<GOOGLE_ID>",
-      "ClientSecret": "<GOOGLE_SECRET>"
-    },
-    "GitHub": {
-      "ClientId": "<GITHUB_ID>",
-      "ClientSecret": "<GITHUB_SECRET>"
-    }
+    "Issuer": "JokesApi",
+    "Audience": "JokesApiClient",
+    "Key": "<CLAVE_SUPER_SECRETA>",
+    "ExpirationMinutes": 60
   }
 }
 ```
 
-### Uso de Swagger
-1. Abre tu navegador en `https://localhost:7070/swagger`.
-2. Explora los endpoints disponibles.
-3. Para los endpoints protegidos, presiona **Authorize** e ingresa un JWT válido (se obtiene en `/api/auth/login`).
+## Referencia de la API REST
+Todos los endpoints que modifican estado o exponen datos sensibles están **protegidos con JWT** salvo que se indique lo contrario.
 
-¡Listo! Ahora puedes probar los servicios de autenticación, gestión de chistes y notificaciones directamente desde la interfaz Swagger. 
+### Endpoints de Autenticación
+| Método | Ruta | Auth | Descripción |
+|--------|------|------|-------------|
+| POST | `/api/auth/login` | Público | Login local; devuelve JWT. |
+| GET  | `/api/auth/external/google-login` | Público | Redirección a OAuth Google. |
+| GET  | `/api/auth/external/github-login` | Público | Redirección a OAuth GitHub. |
+| GET  | `/api/auth/external/callback` | Público | Callback OAuth; genera JWT interno. |
 
-![coverage](coverage/badge.svg) 
+### Endpoints de Usuarios
+| Método | Ruta | Roles | Descripción |
+|--------|------|-------|-------------|
+| POST | `/api/users/register` | Público | Registra usuario nuevo (`role="user"` por defecto; opcional `role="admin"`). |
+| GET  | `/api/users` | `admin` | Lista completa de usuarios. |
+| GET  | `/api/users/{id}` | `admin` | Devuelve usuario por ID. |
+| PUT  | `/api/users/{id}` | `admin` | Actualiza nombre y/o rol. |
+| DELETE | `/api/users/{id}` | `admin` | Elimina usuario. |
+| GET | `/api/admin` | `admin` | Ping exclusivo de administradores. |
+
+### Endpoints de Chistes
+| Método | Ruta | Roles | Descripción |
+|--------|------|-------|-------------|
+| GET | `/api/chistes/aleatorio` | `user`, `admin` | Chiste aleatorio de fuente externa o local. |
+| GET | `/api/chistes/emparejados` | `user`, `admin` | 5 chistes Chuck + 5 Dad en paralelo, emparejados y combinados. |
+| GET | `/api/chistes/combinado` | `user`, `admin` | Chiste compuesto a partir de varias fuentes. |
+| POST| `/api/chistes` | `user`, `admin` | Crea chiste local (autor = usuario actual). |
+| PUT | `/api/chistes/{id}` | autor o `admin` | Actualiza texto del chiste. |
+| DELETE | `/api/chistes/{id}` | autor o `admin` | Elimina chiste. |
+
+### Endpoints Matemáticos
+| Método | Ruta | Roles | Descripción |
+|--------|------|-------|-------------|
+| GET | `/api/matematicas/mcm` | `user`, `admin` | Devuelve mínimo común múltiplo. |
+| GET | `/api/matematicas/siguiente-numero` | `user`, `admin` | Devuelve `number + 1`. |
+
+## Ejecución de Pruebas
+```pwsh
+cd JokesApi.Tests
+ dotnet test /p:CollectCoverage=true /p:CoverletOutputFormat=opencover
+```
+Cobertura requerida: **≥ 90 %**.
+
+## Estructura del Proyecto
+```
+JokesApi/
+  Controllers/
+  Entities/
+  Data/
+  Services/
+  Notifications/
+JokesApi.Tests/
+  *.cs
+```
+
+## Mejoras Futuras
+* Flow de refresh tokens y recuperación de contraseña.  
+* Rate-limiting y bloqueo de IP ante fuerza bruta.  
+* Paginación y ordenación en listas de chistes.  
+* Docker Compose con PostgreSQL.  
+* Pipeline CI (GitHub Actions) para compilar, testear y publicar cobertura.
+
+---
+© 2025 SquadMakers – Todos los derechos reservados. 
