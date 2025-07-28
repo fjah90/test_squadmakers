@@ -38,3 +38,4 @@ ReSharperReports/
 # Ignore SQLite journals
 *.db-shm
 *.db-wal 
+.code
