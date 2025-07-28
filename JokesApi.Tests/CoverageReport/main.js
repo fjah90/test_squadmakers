@@ -213,39 +213,46 @@ var assemblies = [
   {
     "name": "JokesApi",
     "classes": [
-      { "name": "JokesApi.Application.UseCases.GetCombinedJoke", "rp": "JokesApi_GetCombinedJoke.html", "cl": 21, "ucl": 1, "cal": 22, "tl": 41, "cb": 8, "tb": 10, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
-      { "name": "JokesApi.Application.UseCases.GetPairedJokes", "rp": "JokesApi_GetPairedJokes.html", "cl": 20, "ucl": 0, "cal": 20, "tl": 36, "cb": 4, "tb": 6, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
-      { "name": "JokesApi.Application.UseCases.GetRandomJoke", "rp": "JokesApi_GetRandomJoke.html", "cl": 11, "ucl": 7, "cal": 18, "tl": 38, "cb": 3, "tb": 18, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
-      { "name": "JokesApi.Controllers.AuthController", "rp": "JokesApi_AuthController.html", "cl": 18, "ucl": 47, "cal": 65, "tl": 150, "cb": 4, "tb": 18, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
-      { "name": "JokesApi.Controllers.ChistesController", "rp": "JokesApi_ChistesController.html", "cl": 28, "ucl": 74, "cal": 102, "tl": 228, "cb": 0, "tb": 34, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
-      { "name": "JokesApi.Controllers.MathController", "rp": "JokesApi_MathController.html", "cl": 28, "ucl": 3, "cal": 31, "tl": 100, "cb": 7, "tb": 10, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
+      { "name": "JokesApi.Controllers.AuthController", "rp": "JokesApi_AuthController.html", "cl": 38, "ucl": 33, "cal": 71, "tl": 159, "cb": 12, "tb": 26, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
+      { "name": "JokesApi.Controllers.ChistesController", "rp": "JokesApi_ChistesController.html", "cl": 70, "ucl": 61, "cal": 131, "tl": 228, "cb": 10, "tb": 36, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
+      { "name": "JokesApi.Controllers.MathController", "rp": "JokesApi_MathController.html", "cl": 39, "ucl": 1, "cal": 40, "tl": 127, "cb": 9, "tb": 10, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
       { "name": "JokesApi.Controllers.NotificacionesController", "rp": "JokesApi_NotificacionesController.html", "cl": 11, "ucl": 0, "cal": 11, "tl": 31, "cb": 0, "tb": 0, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
-      { "name": "JokesApi.Controllers.UserController", "rp": "JokesApi_UserController.html", "cl": 0, "ucl": 74, "cal": 74, "tl": 207, "cb": 0, "tb": 18, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
-      { "name": "JokesApi.Data.AppDbContext", "rp": "JokesApi_AppDbContext.html", "cl": 22, "ucl": 1, "cal": 23, "tl": 38, "cb": 0, "tb": 0, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
+      { "name": "JokesApi.Controllers.UserController", "rp": "JokesApi_UserController.html", "cl": 76, "ucl": 13, "cal": 89, "tl": 276, "cb": 14, "tb": 26, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
+      { "name": "JokesApi.Data.AppDbContext", "rp": "JokesApi_AppDbContext.html", "cl": 23, "ucl": 0, "cal": 23, "tl": 38, "cb": 0, "tb": 0, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
       { "name": "JokesApi.Data.Migrations.AddRefreshTokens", "rp": "JokesApi_AddRefreshTokens.html", "cl": 0, "ucl": 187, "cal": 187, "tl": 237, "cb": 0, "tb": 0, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
       { "name": "JokesApi.Data.Migrations.AppDbContextModelSnapshot", "rp": "JokesApi_AppDbContextModelSnapshot.html", "cl": 152, "ucl": 0, "cal": 152, "tl": 180, "cb": 0, "tb": 0, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
       { "name": "JokesApi.Data.Migrations.InitialCreate", "rp": "JokesApi_InitialCreate.html", "cl": 0, "ucl": 207, "cal": 207, "tl": 262, "cb": 0, "tb": 0, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
-      { "name": "JokesApi.Entities.Joke", "rp": "JokesApi_Joke.html", "cl": 7, "ucl": 0, "cal": 7, "tl": 16, "cb": 0, "tb": 0, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
-      { "name": "JokesApi.Entities.RefreshToken", "rp": "JokesApi_RefreshToken.html", "cl": 5, "ucl": 2, "cal": 7, "tl": 14, "cb": 0, "tb": 2, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
-      { "name": "JokesApi.Entities.Theme", "rp": "JokesApi_Theme.html", "cl": 0, "ucl": 3, "cal": 3, "tl": 10, "cb": 0, "tb": 0, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
-      { "name": "JokesApi.Entities.User", "rp": "JokesApi_User.html", "cl": 6, "ucl": 0, "cal": 6, "tl": 13, "cb": 0, "tb": 0, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
-      { "name": "JokesApi.Infrastructure.External.ChuckClient", "rp": "JokesApi_ChuckClient.html", "cl": 0, "ucl": 7, "cal": 7, "tl": 17, "cb": 0, "tb": 2, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
-      { "name": "JokesApi.Infrastructure.External.DadClient", "rp": "JokesApi_DadClient.html", "cl": 0, "ucl": 7, "cal": 7, "tl": 17, "cb": 0, "tb": 2, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
-      { "name": "JokesApi.Infrastructure.Repositories.JokeRepository", "rp": "JokesApi_JokeRepository.html", "cl": 2, "ucl": 5, "cal": 7, "tl": 22, "cb": 0, "tb": 0, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
-      { "name": "JokesApi.Infrastructure.Repositories.ThemeRepository", "rp": "JokesApi_ThemeRepository.html", "cl": 0, "ucl": 2, "cal": 2, "tl": 12, "cb": 0, "tb": 0, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
-      { "name": "JokesApi.Infrastructure.Repositories.UserRepository", "rp": "JokesApi_UserRepository.html", "cl": 0, "ucl": 2, "cal": 2, "tl": 12, "cb": 0, "tb": 0, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
-      { "name": "JokesApi.Infrastructure.UnitOfWork", "rp": "JokesApi_UnitOfWork.html", "cl": 0, "ucl": 11, "cal": 11, "tl": 23, "cb": 0, "tb": 0, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
+      { "name": "JokesApi.Infrastructure.External.ChuckClient", "rp": "JokesApi_ChuckClient.html", "cl": 4, "ucl": 3, "cal": 7, "tl": 17, "cb": 0, "tb": 2, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
+      { "name": "JokesApi.Infrastructure.External.DadClient", "rp": "JokesApi_DadClient.html", "cl": 4, "ucl": 3, "cal": 7, "tl": 17, "cb": 0, "tb": 2, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
+      { "name": "JokesApi.Infrastructure.Repositories.JokeRepository", "rp": "JokesApi_JokeRepository.html", "cl": 7, "ucl": 0, "cal": 7, "tl": 22, "cb": 0, "tb": 0, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
+      { "name": "JokesApi.Infrastructure.Repositories.ThemeRepository", "rp": "JokesApi_ThemeRepository.html", "cl": 2, "ucl": 0, "cal": 2, "tl": 12, "cb": 0, "tb": 0, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
+      { "name": "JokesApi.Infrastructure.Repositories.UserRepository", "rp": "JokesApi_UserRepository.html", "cl": 2, "ucl": 0, "cal": 2, "tl": 12, "cb": 0, "tb": 0, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
+      { "name": "JokesApi.Infrastructure.UnitOfWork", "rp": "JokesApi_UnitOfWork.html", "cl": 9, "ucl": 2, "cal": 11, "tl": 23, "cb": 0, "tb": 0, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
       { "name": "JokesApi.Middleware.ErrorHandlingMiddleware", "rp": "JokesApi_ErrorHandlingMiddleware.html", "cl": 18, "ucl": 0, "cal": 18, "tl": 31, "cb": 0, "tb": 0, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
       { "name": "JokesApi.Notifications.EmailNotifier", "rp": "JokesApi_EmailNotifier.html", "cl": 0, "ucl": 9, "cal": 9, "tl": 20, "cb": 0, "tb": 0, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
       { "name": "JokesApi.Notifications.SmsNotifier", "rp": "JokesApi_SmsNotifier.html", "cl": 0, "ucl": 9, "cal": 9, "tl": 20, "cb": 0, "tb": 0, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
-      { "name": "JokesApi.Services.AlertService", "rp": "JokesApi_AlertService.html", "cl": 13, "ucl": 0, "cal": 13, "tl": 27, "cb": 3, "tb": 4, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
+      { "name": "JokesApi.Services.AlertService", "rp": "JokesApi_AlertService.html", "cl": 13, "ucl": 0, "cal": 13, "tl": 27, "cb": 4, "tb": 4, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
       { "name": "JokesApi.Services.TokenPair", "rp": "JokesApi_TokenPair.html", "cl": 1, "ucl": 0, "cal": 1, "tl": 12, "cb": 0, "tb": 0, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
-      { "name": "JokesApi.Services.TokenService", "rp": "JokesApi_TokenService.html", "cl": 37, "ucl": 15, "cal": 52, "tl": 87, "cb": 0, "tb": 6, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
+      { "name": "JokesApi.Services.TokenService", "rp": "JokesApi_TokenService.html", "cl": 52, "ucl": 0, "cal": 52, "tl": 87, "cb": 6, "tb": 6, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
       { "name": "JokesApi.Settings.JwtSettings", "rp": "JokesApi_JwtSettings.html", "cl": 4, "ucl": 0, "cal": 4, "tl": 9, "cb": 0, "tb": 0, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
       { "name": "JokesApi.Settings.NotificationSettings", "rp": "JokesApi_NotificationSettings.html", "cl": 1, "ucl": 0, "cal": 1, "tl": 6, "cb": 0, "tb": 0, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
       { "name": "JokesApi.Swagger.AuthorizeCheckOperationFilter", "rp": "JokesApi_AuthorizeCheckOperationFilter.html", "cl": 0, "ucl": 8, "cal": 8, "tl": 24, "cb": 0, "tb": 8, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
-      { "name": "Program", "rp": "JokesApi_Program.html", "cl": 107, "ucl": 22, "cal": 129, "tl": 256, "cb": 6, "tb": 8, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
-      { "name": "WeatherForecast", "rp": "JokesApi_WeatherForecast.html", "cl": 0, "ucl": 2, "cal": 2, "tl": 256, "cb": 0, "tb": 0, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
+      { "name": "Program", "rp": "JokesApi_Program.html", "cl": 163, "ucl": 27, "cal": 190, "tl": 251, "cb": 9, "tb": 18, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
+    ]},
+  {
+    "name": "JokesApi.Application",
+    "classes": [
+      { "name": "JokesApi.Application.UseCases.GetCombinedJoke", "rp": "JokesApi.Application_GetCombinedJoke.html", "cl": 21, "ucl": 1, "cal": 22, "tl": 41, "cb": 9, "tb": 10, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
+      { "name": "JokesApi.Application.UseCases.GetPairedJokes", "rp": "JokesApi.Application_GetPairedJokes.html", "cl": 20, "ucl": 0, "cal": 20, "tl": 36, "cb": 6, "tb": 6, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
+      { "name": "JokesApi.Application.UseCases.GetRandomJoke", "rp": "JokesApi.Application_GetRandomJoke.html", "cl": 18, "ucl": 0, "cal": 18, "tl": 38, "cb": 17, "tb": 18, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
+    ]},
+  {
+    "name": "JokesApi.Domain",
+    "classes": [
+      { "name": "JokesApi.Entities.Joke", "rp": "JokesApi.Domain_Joke.html", "cl": 7, "ucl": 0, "cal": 7, "tl": 16, "cb": 0, "tb": 0, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
+      { "name": "JokesApi.Entities.RefreshToken", "rp": "JokesApi.Domain_RefreshToken.html", "cl": 7, "ucl": 0, "cal": 7, "tl": 14, "cb": 1, "tb": 2, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
+      { "name": "JokesApi.Entities.Theme", "rp": "JokesApi.Domain_Theme.html", "cl": 3, "ucl": 0, "cal": 3, "tl": 10, "cb": 0, "tb": 0, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
+      { "name": "JokesApi.Entities.User", "rp": "JokesApi.Domain_User.html", "cl": 6, "ucl": 0, "cal": 6, "tl": 13, "cb": 0, "tb": 0, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
     ]},
 ];
 
@@ -260,31 +267,31 @@ var riskHotspotMetrics = [
 
 var riskHotspots = [
   {
-    "assembly": "JokesApi", "class": "JokesApi.Controllers.AuthController", "reportPath": "JokesApi_AuthController.html", "methodName": "ExternalCallback()", "methodShortName": "ExternalCallback()", "fileIndex": 0, "line": 64,
+    "assembly": "JokesApi", "class": "JokesApi.Controllers.AuthController", "reportPath": "JokesApi_AuthController.html", "methodName": "ExternalCallback()", "methodShortName": "ExternalCallback()", "fileIndex": 0, "line": 89,
     "metrics": [
       { "value": 272, "exceeded": true },
       { "value": 16, "exceeded": true },
     ]},
   {
-    "assembly": "JokesApi", "class": "JokesApi.Controllers.ChistesController", "reportPath": "JokesApi_ChistesController.html", "methodName": "Create()", "methodShortName": "Create()", "fileIndex": 0, "line": 86,
+    "assembly": "JokesApi", "class": "JokesApi.Controllers.ChistesController", "reportPath": "JokesApi_ChistesController.html", "methodName": "Create()", "methodShortName": "Create()", "fileIndex": 0, "line": 87,
     "metrics": [
       { "value": 72, "exceeded": true },
       { "value": 8, "exceeded": false },
     ]},
   {
-    "assembly": "JokesApi", "class": "JokesApi.Controllers.ChistesController", "reportPath": "JokesApi_ChistesController.html", "methodName": "Delete()", "methodShortName": "Delete()", "fileIndex": 0, "line": 156,
+    "assembly": "JokesApi", "class": "JokesApi.Controllers.ChistesController", "reportPath": "JokesApi_ChistesController.html", "methodName": "Delete()", "methodShortName": "Delete()", "fileIndex": 0, "line": 213,
     "metrics": [
       { "value": 72, "exceeded": true },
       { "value": 8, "exceeded": false },
     ]},
   {
-    "assembly": "JokesApi", "class": "JokesApi.Controllers.ChistesController", "reportPath": "JokesApi_ChistesController.html", "methodName": "Filter()", "methodShortName": "Filter()", "fileIndex": 0, "line": 118,
+    "assembly": "JokesApi", "class": "JokesApi.Controllers.ChistesController", "reportPath": "JokesApi_ChistesController.html", "methodName": "Update()", "methodShortName": "Update()", "fileIndex": 0, "line": 195,
     "metrics": [
       { "value": 72, "exceeded": true },
       { "value": 8, "exceeded": false },
     ]},
   {
-    "assembly": "JokesApi", "class": "JokesApi.Controllers.ChistesController", "reportPath": "JokesApi_ChistesController.html", "methodName": "Update()", "methodShortName": "Update()", "fileIndex": 0, "line": 138,
+    "assembly": "JokesApi", "class": "JokesApi.Controllers.UserController", "reportPath": "JokesApi_UserController.html", "methodName": "GetCurrentUser()", "methodShortName": "GetCurrentUser()", "fileIndex": 0, "line": 245,
     "metrics": [
       { "value": 72, "exceeded": true },
       { "value": 8, "exceeded": false },
@@ -296,22 +303,16 @@ var riskHotspots = [
       { "value": 8, "exceeded": false },
     ]},
   {
-    "assembly": "JokesApi", "class": "JokesApi.Application.UseCases.GetRandomJoke", "reportPath": "JokesApi_GetRandomJoke.html", "methodName": "ExecuteAsync()", "methodShortName": "ExecuteAsync()", "fileIndex": 0, "line": 17,
+    "assembly": "JokesApi", "class": "Program", "reportPath": "JokesApi_Program.html", "methodName": "<Main>$(System.String[])", "methodShortName": "<Main>$(...)", "fileIndex": 0, "line": 22,
     "metrics": [
-      { "value": 69, "exceeded": true },
+      { "value": 19, "exceeded": false },
       { "value": 18, "exceeded": true },
     ]},
   {
-    "assembly": "JokesApi", "class": "JokesApi.Controllers.UserController", "reportPath": "JokesApi_UserController.html", "methodName": "Register()", "methodShortName": "Register()", "fileIndex": 0, "line": 57,
+    "assembly": "JokesApi.Application", "class": "JokesApi.Application.UseCases.GetRandomJoke", "reportPath": "JokesApi.Application_GetRandomJoke.html", "methodName": "ExecuteAsync()", "methodShortName": "ExecuteAsync()", "fileIndex": 0, "line": 17,
     "metrics": [
-      { "value": 42, "exceeded": true },
-      { "value": 6, "exceeded": false },
-    ]},
-  {
-    "assembly": "JokesApi", "class": "JokesApi.Controllers.UserController", "reportPath": "JokesApi_UserController.html", "methodName": "UpdateUser()", "methodShortName": "UpdateUser()", "fileIndex": 0, "line": 167,
-    "metrics": [
-      { "value": 42, "exceeded": true },
-      { "value": 6, "exceeded": false },
+      { "value": 18, "exceeded": false },
+      { "value": 18, "exceeded": true },
     ]},
 ];
 
