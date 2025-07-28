@@ -9,6 +9,7 @@ using AspNet.Security.OAuth.GitHub;
 using Microsoft.EntityFrameworkCore;
 using System.ComponentModel.DataAnnotations;
 using Microsoft.IdentityModel.Tokens;
+using Microsoft.AspNetCore.RateLimiting;
 
 namespace JokesApi.Controllers;
 
@@ -31,6 +32,7 @@ public class AuthController : ControllerBase
     public record LoginResponse(string Token, string RefreshToken);
 
     [HttpPost("login")]
+    [EnableRateLimiting("login")]
     public async Task<IActionResult> Login([FromBody] LoginRequest request)
     {
         _logger.LogInformation("Login attempt for {Email}", request.Email);

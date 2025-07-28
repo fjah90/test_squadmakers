@@ -14,6 +14,9 @@ using JokesApi.Domain.Repositories;
 using JokesApi.Infrastructure;
 using JokesApi.Infrastructure.Repositories;
 using JokesApi.Application.UseCases;
+using AspNetCoreRateLimit;
+using Microsoft.AspNetCore.RateLimiting;
+using System.Threading.RateLimiting;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -48,6 +51,33 @@ builder.Services.AddSwaggerGen(options =>
     options.OperationFilter<JokesApi.Swagger.AuthorizeCheckOperationFilter>();
 });
 builder.Services.AddControllers();
+
+// Configure IP Rate Limiting
+builder.Services.AddMemoryCache();
+builder.Services.Configure<IpRateLimitOptions>(builder.Configuration.GetSection("IpRateLimiting"));
+builder.Services.Configure<IpRateLimitPolicies>(builder.Configuration.GetSection("IpRateLimitPolicies"));
+builder.Services.AddSingleton<IIpPolicyStore, MemoryCacheIpPolicyStore>();
+builder.Services.AddSingleton<IRateLimitCounterStore, MemoryCacheRateLimitCounterStore>();
+builder.Services.AddSingleton<IRateLimitConfiguration, RateLimitConfiguration>();
+builder.Services.AddSingleton<IProcessingStrategy, AsyncKeyLockProcessingStrategy>();
+builder.Services.AddInMemoryRateLimiting();
+
+// Configure login attempt rate limiting
+builder.Services.AddRateLimiter(options =>
+{
+    options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
+    
+    // Add policy for login endpoint
+    options.AddPolicy("login", httpContext =>
+        RateLimitPartition.GetFixedWindowLimiter(
+            partitionKey: httpContext.Connection.RemoteIpAddress?.ToString() ?? "anonymous",
+            factory: _ => new FixedWindowRateLimiterOptions
+            {
+                AutoReplenishment = true,
+                PermitLimit = 5,
+                Window = TimeSpan.FromMinutes(15)
+            }));
+});
 
 // Configure database based on connection string
 var connectionString = builder.Configuration.GetConnectionString("Default") ?? 
@@ -158,6 +188,12 @@ if (!app.Environment.IsDevelopment())
 {
     app.UseHttpsRedirection();
 }
+
+// Use IP rate limiting middleware
+app.UseIpRateLimiting();
+
+// Use rate limiter middleware
+app.UseRateLimiter();
 
 app.UseMiddleware<JokesApi.Middleware.ErrorHandlingMiddleware>();
 

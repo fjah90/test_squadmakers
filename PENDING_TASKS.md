@@ -34,8 +34,8 @@
   2. Publique reporte de cobertura en badge.
 
 ## 6. Seguridad avanzada
-- [ ] Implementar rate-limiting por IP.
-- [ ] Bloqueo temporal ante múltiples intentos fallidos de login.
+- [x] Implementar rate-limiting por IP.
+- [x] Bloqueo temporal ante múltiples intentos fallidos de login.
 
 ## 7. Documentación
 - [ ] Añadir ejemplos `200`, `400`, `401`, `403`, `404` en Swagger para todos los endpoints.
