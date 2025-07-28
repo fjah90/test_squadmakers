@@ -1,4 +1,4 @@
-name: .NET CI
+name: JokesAPI CI/CD
 
 on:
   push:
@@ -7,30 +7,46 @@ on:
     branches: [ main ]
 
 jobs:
-  build-test:
+  build:
     runs-on: ubuntu-latest
+
     steps:
-      - uses: actions/checkout@v4
-      - name: Setup .NET
-        uses: actions/setup-dotnet@v4
-        with:
-          dotnet-version: '8.0.x'
-      - name: Restore
-        run: dotnet restore
-      - name: Test with coverage
-        run: |
-          dotnet test JokesApi.Tests/JokesApi.Tests.csproj \
-            /p:CollectCoverage=true \
-            /p:CoverletOutput="coverage/" \
-            /p:CoverletOutputFormat=cobertura \
-            --verbosity normal
-      - name: Install ReportGenerator
-        run: dotnet tool install --global dotnet-reportgenerator-globaltool --version 5.2.4
-      - name: Generate coverage report & badge
-        run: |
-          reportgenerator -reports:coverage/coverage.cobertura.xml -targetdir:coverage -reporttypes:Html;Badges
-      - name: Upload coverage artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: coverage-report
-          path: coverage 
+    - uses: actions/checkout@v3
+    
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v3
+      with:
+        dotnet-version: 8.0.x
+    
+    - name: Restore dependencies
+      run: dotnet restore
+    
+    - name: Build
+      run: dotnet build --no-restore
+    
+    - name: Test with coverage
+      run: dotnet test --no-build --verbosity normal /p:CollectCoverage=true /p:CoverletOutputFormat=cobertura
+    
+    - name: Generate coverage report
+      uses: danielpalme/ReportGenerator-GitHub-Action@5.2.0
+      with:
+        reports: '**/coverage.cobertura.xml'
+        targetdir: 'coveragereport'
+        reporttypes: 'HtmlInline;Badges'
+    
+    - name: Upload coverage report artifact
+      uses: actions/upload-artifact@v3
+      with:
+        name: CoverageReport
+        path: coveragereport
+    
+    - name: Create coverage badge
+      uses: simon-k/dotnet-code-coverage-badge@v1.0.0
+      id: create_coverage_badge
+      with:
+        label: Coverage
+        color: brightgreen
+        path: '**/coverage.cobertura.xml'
+        gist-filename: code-coverage.json
+        gist-id: ${{ secrets.GIST_ID }}
+        gist-auth-token: ${{ secrets.GIST_AUTH_TOKEN }} 

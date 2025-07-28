@@ -29,7 +29,7 @@
 - [x] Ajustar `ConnectionStrings` vía variables de entorno.
 
 ## 5. CI / CD
-- [ ] Workflow GitHub Actions que:
+- [x] Workflow GitHub Actions que:
   1. Restaure, compile y ejecute tests.
   2. Publique reporte de cobertura en badge.
 
