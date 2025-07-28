@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Swashbuckle.AspNetCore.Annotations;
 
 namespace JokesApi.Controllers;
 
@@ -22,6 +23,12 @@ public class MathController : ControllerBase
     /// </summary>
     /// <param name="numbers">Comma-separated integers (e.g. 3,4,5).</param>
     [HttpGet("mcm")]
+    [SwaggerOperation(
+        Summary = "Calcula el mínimo común múltiplo (MCM) de una lista de números",
+        Description = "Recibe una lista de números separados por comas y devuelve su MCM"
+    )]
+    [SwaggerResponse(200, "MCM calculado correctamente", typeof(object))]
+    [SwaggerResponse(400, "Parámetros incorrectos")]
     public IActionResult Lcm([FromQuery] string numbers)
     {
         if (string.IsNullOrWhiteSpace(numbers))
@@ -47,6 +54,11 @@ public class MathController : ControllerBase
     /// Devuelve el siguiente número entero (n + 1).
     /// </summary>
     [HttpGet("siguiente-numero")]
+    [SwaggerOperation(
+        Summary = "Devuelve el siguiente número entero",
+        Description = "Incrementa en 1 el número proporcionado"
+    )]
+    [SwaggerResponse(200, "Siguiente número calculado correctamente", typeof(object))]
     public IActionResult NextNumber([FromQuery] int number) => Ok(new { result = number + 1 });
 
     private static long Gcd(long a, long b)
@@ -69,6 +81,11 @@ public class MathController : ControllerBase
     /// <param name="b">Segundo número</param>
     /// <returns>La suma de a y b</returns>
     [HttpGet("/api/math/add")]
+    [SwaggerOperation(
+        Summary = "Suma dos números enteros",
+        Description = "Recibe dos números enteros y devuelve su suma"
+    )]
+    [SwaggerResponse(200, "Suma calculada correctamente", typeof(int))]
     public IActionResult Add([FromQuery] int a, [FromQuery] int b)
     {
         return Ok(a + b);
@@ -81,6 +98,11 @@ public class MathController : ControllerBase
     /// <param name="b">Segundo número</param>
     /// <returns>La diferencia entre a y b</returns>
     [HttpGet("/api/math/subtract")]
+    [SwaggerOperation(
+        Summary = "Resta dos números enteros",
+        Description = "Recibe dos números enteros y devuelve su diferencia"
+    )]
+    [SwaggerResponse(200, "Resta calculada correctamente", typeof(int))]
     public IActionResult Subtract([FromQuery] int a, [FromQuery] int b)
     {
         return Ok(a - b);
@@ -93,6 +115,11 @@ public class MathController : ControllerBase
     /// <param name="b">Segundo número</param>
     /// <returns>El producto de a y b</returns>
     [HttpGet("/api/math/multiply")]
+    [SwaggerOperation(
+        Summary = "Multiplica dos números enteros",
+        Description = "Recibe dos números enteros y devuelve su producto"
+    )]
+    [SwaggerResponse(200, "Multiplicación calculada correctamente", typeof(int))]
     public IActionResult Multiply([FromQuery] int a, [FromQuery] int b)
     {
         return Ok(a * b);
