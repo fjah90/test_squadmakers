@@ -15,6 +15,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http.Headers;
 using Microsoft.EntityFrameworkCore;
+using JokesApi.Application.UseCases;
+using JokesApi.Application.Ports;
 
 namespace JokesApi.Tests;
 
@@ -41,20 +43,47 @@ public class ChistesControllerTests
         };
     }
 
+    private static IChuckClient CreateChuckClient()
+    {
+        var mock = new Mock<IChuckClient>();
+        mock.Setup(c => c.GetRandomJokeAsync(It.IsAny<System.Threading.CancellationToken>()))
+            .ReturnsAsync("Chuck joke!");
+        return mock.Object;
+    }
+
+    private static IDadClient CreateDadClient()
+    {
+        var mock = new Mock<IDadClient>();
+        mock.Setup(c => c.GetRandomJokeAsync(It.IsAny<System.Threading.CancellationToken>()))
+            .ReturnsAsync("Dad joke!");
+        return mock.Object;
+    }
+
     [Fact]
     public async Task GetPaired_ReturnsFiveItems()
     {
         // Arrange
         var uow = new Mock<IUnitOfWork>();
-        var controller = new ChistesController(CreateFactory(), uow.Object, NullLogger<ChistesController>.Instance);
+        var chuckClient = CreateChuckClient();
+        var dadClient = CreateDadClient();
+        var randomUseCase = new GetRandomJoke(chuckClient, dadClient);
+        var pairedUseCase = new GetPairedJokes(chuckClient, dadClient);
+        var combinedUseCase = new GetCombinedJoke(chuckClient, dadClient, uow.Object);
+        
+        var controller = new ChistesController(
+            uow.Object, 
+            NullLogger<ChistesController>.Instance, 
+            combinedUseCase,
+            randomUseCase,
+            pairedUseCase);
 
         // Act
         var res = await controller.GetPaired() as OkObjectResult;
 
         // Assert
         Assert.NotNull(res);
-        var list = res!.Value as IEnumerable<object>;
-        Assert.Equal(5, list!.Count());
+        var list = res!.Value as List<GetPairedJokes.PairedJokeResult>;
+        Assert.Equal(5, list!.Count);
     }
 
     [Fact]
@@ -68,9 +97,48 @@ public class ChistesControllerTests
         var jokeRepo = new JokesApi.Infrastructure.Repositories.JokeRepository(db);
         var uow = new Mock<IUnitOfWork>();
         uow.Setup(x => x.Jokes).Returns(jokeRepo);
-        var controller = new ChistesController(CreateFactory(), uow.Object, NullLogger<ChistesController>.Instance);
+        
+        var chuckClient = CreateChuckClient();
+        var dadClient = CreateDadClient();
+        var randomUseCase = new GetRandomJoke(chuckClient, dadClient);
+        var pairedUseCase = new GetPairedJokes(chuckClient, dadClient);
+        var combinedUseCase = new GetCombinedJoke(chuckClient, dadClient, uow.Object);
+        
+        var controller = new ChistesController(
+            uow.Object, 
+            NullLogger<ChistesController>.Instance, 
+            combinedUseCase,
+            randomUseCase,
+            pairedUseCase);
 
         var res = await controller.GetCombined() as OkObjectResult;
         Assert.NotNull(res);
+    }
+    
+    [Fact]
+    public async Task GetRandom_ReturnsJoke()
+    {
+        // Arrange
+        var uow = new Mock<IUnitOfWork>();
+        var chuckClient = CreateChuckClient();
+        var dadClient = CreateDadClient();
+        var randomUseCase = new GetRandomJoke(chuckClient, dadClient);
+        var pairedUseCase = new GetPairedJokes(chuckClient, dadClient);
+        var combinedUseCase = new GetCombinedJoke(chuckClient, dadClient, uow.Object);
+        
+        var controller = new ChistesController(
+            uow.Object, 
+            NullLogger<ChistesController>.Instance, 
+            combinedUseCase,
+            randomUseCase,
+            pairedUseCase);
+
+        // Act
+        var res = await controller.GetRandom("chuck") as OkObjectResult;
+
+        // Assert
+        Assert.NotNull(res);
+        // Simplemente verificamos que la respuesta no sea nula
+        Assert.NotNull(res.Value);
     }
 } 

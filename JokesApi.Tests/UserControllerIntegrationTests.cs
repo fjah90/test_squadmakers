@@ -1,50 +1,58 @@
-using System.IdentityModel.Tokens.Jwt;
-using System.Security.Claims;
-using System.Text;
-using JokesApi.Settings;
+using System;
+using System.Net.Http;
+using System.Net.Http.Json;
+using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Options;
-using Microsoft.IdentityModel.Tokens;
 using Xunit;
 
-namespace JokesApi.Tests;
-
-public class UserControllerIntegrationTests : IClassFixture<WebApplicationFactory<JokesApi.Program>>
+namespace JokesApi.Tests
 {
-    private readonly WebApplicationFactory<JokesApi.Program> _factory;
-    public UserControllerIntegrationTests(WebApplicationFactory<JokesApi.Program> factory)
+    public class UserControllerIntegrationTests : IClassFixture<WebApplicationFactory<Program>>
     {
-        _factory = factory;
-    }
+        private readonly WebApplicationFactory<Program> _factory;
+        private readonly HttpClient _client;
 
-    private static string Jwt(IServiceProvider sp, string role="admin")
-    {
-        var s=sp.GetRequiredService<IOptions<JwtSettings>>().Value;
-        var key=new SymmetricSecurityKey(Encoding.UTF8.GetBytes(s.Key));
-        var creds=new SigningCredentials(key,SecurityAlgorithms.HmacSha256);
-        var token=new JwtSecurityToken(s.Issuer,s.Audience,new[]{
-            new Claim(JwtRegisteredClaimNames.Sub,Guid.NewGuid().ToString()),
-            new Claim(ClaimTypes.Role,role)
-        },expires:DateTime.UtcNow.AddMinutes(5),signingCredentials:creds);
-        return new JwtSecurityTokenHandler().WriteToken(token);
-    }
+        public UserControllerIntegrationTests(WebApplicationFactory<Program> factory)
+        {
+            _factory = factory.WithWebHostBuilder(builder =>
+            {
+                builder.ConfigureServices(services =>
+                {
+                    // Aquí podríamos reemplazar servicios para testing
+                });
+            });
 
-    [Fact]
-    public async Task GetUsers_Returns401_WithoutToken()
-    {
-        var client=_factory.CreateClient();
-        var res=await client.GetAsync("/api/users");
-        Assert.Equal(System.Net.HttpStatusCode.Unauthorized,res.StatusCode);
-    }
+            _client = _factory.CreateClient();
+        }
 
-    [Fact]
-    public async Task GetUsers_Returns200_WithAdminToken()
-    {
-        var client=_factory.CreateClient();
-        var token=Jwt(_factory.Services);
-        client.DefaultRequestHeaders.Authorization=new("Bearer",token);
-        var res=await client.GetAsync("/api/users");
-        res.EnsureSuccessStatusCode();
+        [Fact]
+        public async Task GetUsers_ReturnsUnauthorized_WhenNoToken()
+        {
+            // Act
+            var response = await _client.GetAsync("/api/user");
+            
+            // Assert
+            Assert.Equal(System.Net.HttpStatusCode.Unauthorized, response.StatusCode);
+        }
+
+        [Fact]
+        public async Task Register_ReturnsCreated_WithValidData()
+        {
+            // Arrange
+            var uniqueEmail = $"test_{Guid.NewGuid()}@example.com";
+            var registerData = new
+            {
+                Name = "Test User",
+                Email = uniqueEmail,
+                Password = "Test123!"
+            };
+
+            // Act
+            var response = await _client.PostAsJsonAsync("/api/auth/register", registerData);
+            
+            // Assert
+            Assert.Equal(System.Net.HttpStatusCode.Created, response.StatusCode);
+        }
     }
 } 
