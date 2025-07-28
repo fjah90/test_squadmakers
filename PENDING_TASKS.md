@@ -18,8 +18,8 @@
   - Cobertura actual: 42.07% (se necesita mejorar para llegar al 90%)
 
 ## 3. Refresh Tokens completo
-- [ ] Endpoint `POST /api/auth/refresh` (ya existe) → agregar pruebas.
-- [ ] Endpoint `POST /api/auth/revoke` (ya existe) → agregar pruebas.
+- [x] Endpoint `POST /api/auth/refresh` (ya existe) → agregar pruebas.
+- [x] Endpoint `POST /api/auth/revoke` (ya existe) → agregar pruebas.
 - [ ] Validar revocación en middleware (opcional).
 
 ## 4. Docker y PostgreSQL
