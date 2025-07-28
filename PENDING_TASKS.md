@@ -23,10 +23,10 @@
 - [ ] Validar revocación en middleware (opcional).
 
 ## 4. Docker y PostgreSQL
-- [ ] Crear `docker-compose.yml` con:
+- [x] Crear `docker-compose.yml` con:
   - API
   - PostgreSQL
-- [ ] Ajustar `ConnectionStrings` vía variables de entorno.
+- [x] Ajustar `ConnectionStrings` vía variables de entorno.
 
 ## 5. CI / CD
 - [ ] Workflow GitHub Actions que:

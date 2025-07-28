@@ -48,8 +48,22 @@ builder.Services.AddSwaggerGen(options =>
     options.OperationFilter<JokesApi.Swagger.AuthorizeCheckOperationFilter>();
 });
 builder.Services.AddControllers();
-builder.Services.AddDbContext<AppDbContext>(options =>
-    options.UseSqlite(builder.Configuration.GetConnectionString("Default")));
+
+// Configure database based on connection string
+var connectionString = builder.Configuration.GetConnectionString("Default") ?? 
+    throw new InvalidOperationException("Connection string 'Default' not found.");
+if (connectionString.Contains("Host=")) 
+{
+    // PostgreSQL connection
+    builder.Services.AddDbContext<AppDbContext>(options =>
+        options.UseNpgsql(connectionString));
+}
+else
+{
+    // SQLite connection (default)
+    builder.Services.AddDbContext<AppDbContext>(options =>
+        options.UseSqlite(connectionString));
+}
 
 builder.Services.Configure<JwtSettings>(builder.Configuration.GetSection("JwtSettings"));
 builder.Services.AddScoped<ITokenService, TokenService>();
@@ -60,7 +74,9 @@ builder.Services.AddSingleton<INotifier, SmsNotifier>();
 builder.Services.AddScoped<AlertService>();
 
 var jwtSettings = builder.Configuration.GetSection("JwtSettings").Get<JwtSettings>();
-var key = Encoding.UTF8.GetBytes(jwtSettings!.Key);
+if (jwtSettings == null)
+    throw new InvalidOperationException("JwtSettings configuration is missing");
+var key = Encoding.UTF8.GetBytes(jwtSettings.Key);
 
 // Removed duplicate AddAuthentication call; configuration is handled below.
 
