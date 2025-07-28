@@ -119,6 +119,9 @@ builder.Services.AddScoped<IJokeRepository, JokeRepository>();
 builder.Services.AddScoped<IThemeRepository, ThemeRepository>();
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
+builder.Services.AddScoped<JokesApi.Application.Ports.IChuckClient, JokesApi.Infrastructure.External.ChuckClient>();
+builder.Services.AddScoped<JokesApi.Application.Ports.IDadClient, JokesApi.Infrastructure.External.DadClient>();
+builder.Services.AddScoped<JokesApi.Application.UseCases.GetCombinedJoke>();
 
 var app = builder.Build();
 

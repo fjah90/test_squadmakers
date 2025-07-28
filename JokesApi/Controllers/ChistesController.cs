@@ -17,12 +17,14 @@ public class ChistesController : ControllerBase
     private readonly IHttpClientFactory _httpFactory;
     private readonly IUnitOfWork _uow;
     private readonly ILogger<ChistesController> _logger;
+    private readonly JokesApi.Application.UseCases.GetCombinedJoke _combinedUseCase;
 
-    public ChistesController(IHttpClientFactory httpFactory, IUnitOfWork uow, ILogger<ChistesController> logger)
+    public ChistesController(IHttpClientFactory httpFactory, IUnitOfWork uow, ILogger<ChistesController> logger, JokesApi.Application.UseCases.GetCombinedJoke combinedUseCase)
     {
         _httpFactory = httpFactory;
         _uow = uow;
         _logger = logger;
+        _combinedUseCase = combinedUseCase;
     }
 
     // External DTOs
@@ -90,25 +92,7 @@ public class ChistesController : ControllerBase
     {
         try
         {
-            var chuck = await GetChuckJokeAsync();
-            var dad = await GetDadJokeAsync();
-            var localList = await _uow.Jokes.Query.AsNoTracking()
-                .Select(j => j.Text)
-                .ToListAsync();
-            var local = localList.Count == 0 ? null : localList[Random.Shared.Next(localList.Count)];
-
-            var pieces = new List<string>();
-            if (!string.IsNullOrWhiteSpace(chuck))
-                pieces.Add(chuck.Split('.')[0].Trim());
-            if (!string.IsNullOrWhiteSpace(dad))
-                pieces.Add(dad.Split('.')[0].Trim());
-            if (!string.IsNullOrWhiteSpace(local))
-                pieces.Add(local.Split('.')[0].Trim());
-
-            if (pieces.Count == 0)
-                return StatusCode(500, "No jokes available");
-
-            var combined = string.Join(", ", pieces) + ".";
+            var combined = await _combinedUseCase.ExecuteAsync();
             return Ok(new { combined });
         }
         catch (Exception ex)
