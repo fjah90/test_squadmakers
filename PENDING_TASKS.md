@@ -3,12 +3,12 @@
 > Este archivo resume los puntos que aún faltan o están parciales respecto a los requisitos de **prueba.md**.
 
 ## 1. Arquitectura Hexagonal estricta
-- [ ] Extraer casos de uso a capa `Application` / `UseCases`.
+- [x] Extraer casos de uso a capa `Application` / `UseCases`.
 - [x] Definir puertos de salida:
   - `IChuckClient`, `IDadClient` (consumo APIs externas)
   - `INotifier` ya existe (OK)
 - [x] Implementar adaptadores de salida en `Infrastructure`.
-- [ ] Mover lógica de combinación de chistes fuera de los controladores.
+- [x] Mover lógica de combinación de chistes fuera de los controladores.
 
 ## 2. Cobertura de Pruebas ≥ 90 %
 - [x] Añadir tests de integración para:

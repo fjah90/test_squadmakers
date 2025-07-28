@@ -1,11 +1,10 @@
 using System.ComponentModel.DataAnnotations;
-using System.Net.Http.Json;
-using JokesApi.Data;
 using JokesApi.Entities;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using JokesApi.Domain.Repositories;
+using JokesApi.Application.UseCases;
 
 namespace JokesApi.Controllers;
 
@@ -14,43 +13,32 @@ namespace JokesApi.Controllers;
 [Authorize(Roles = "user,admin")]
 public class ChistesController : ControllerBase
 {
-    private readonly IHttpClientFactory _httpFactory;
     private readonly IUnitOfWork _uow;
     private readonly ILogger<ChistesController> _logger;
-    private readonly JokesApi.Application.UseCases.GetCombinedJoke _combinedUseCase;
+    private readonly GetCombinedJoke _combinedUseCase;
+    private readonly GetRandomJoke _randomUseCase;
+    private readonly GetPairedJokes _pairedUseCase;
 
-    public ChistesController(IHttpClientFactory httpFactory, IUnitOfWork uow, ILogger<ChistesController> logger, JokesApi.Application.UseCases.GetCombinedJoke combinedUseCase)
+    public ChistesController(
+        IUnitOfWork uow, 
+        ILogger<ChistesController> logger, 
+        GetCombinedJoke combinedUseCase,
+        GetRandomJoke randomUseCase,
+        GetPairedJokes pairedUseCase)
     {
-        _httpFactory = httpFactory;
         _uow = uow;
         _logger = logger;
         _combinedUseCase = combinedUseCase;
+        _randomUseCase = randomUseCase;
+        _pairedUseCase = pairedUseCase;
     }
-
-    // External DTOs
-    private record ChuckResponse(string value);
-    private record DadResponse(string joke);
 
     [HttpGet("aleatorio")]
     public async Task<IActionResult> GetRandom([FromQuery] string? origen)
     {
         try
         {
-            string jokeText;
-            switch (origen?.ToLower())
-            {
-                case "chuck":
-                    jokeText = await GetChuckJokeAsync();
-                    break;
-                case "dad":
-                    jokeText = await GetDadJokeAsync();
-                    break;
-                case null:
-                default:
-                    var pickChuck = Random.Shared.Next(2) == 0;
-                    jokeText = pickChuck ? await GetChuckJokeAsync() : await GetDadJokeAsync();
-                    break;
-            }
+            var jokeText = await _randomUseCase.ExecuteAsync(origen);
             return Ok(new { joke = jokeText });
         }
         catch (Exception ex)
@@ -65,19 +53,7 @@ public class ChistesController : ControllerBase
     {
         try
         {
-            var chuckTasks = Enumerable.Range(0, 5).Select(_ => GetChuckJokeAsync()).ToArray();
-            var dadTasks = Enumerable.Range(0, 5).Select(_ => GetDadJokeAsync()).ToArray();
-
-            await Task.WhenAll(chuckTasks.Concat(dadTasks));
-
-            var result = new List<object>();
-            for (int i = 0; i < 5; i++)
-            {
-                var chuck = chuckTasks[i].Result;
-                var dad = dadTasks[i].Result;
-                var combinado = $"{chuck} Also, {dad}";
-                result.Add(new { id = i + 1, chuck, dad, combinado });
-            }
+            var result = await _pairedUseCase.ExecuteAsync();
             return Ok(result);
         }
         catch (Exception ex)
@@ -191,20 +167,5 @@ public class ChistesController : ControllerBase
         _uow.Jokes.Remove(joke);
         await _uow.SaveAsync();
         return NoContent();
-    }
-
-    // Helper methods
-    private async Task<string> GetChuckJokeAsync()
-    {
-        var client = _httpFactory.CreateClient("Chuck");
-        var res = await client.GetFromJsonAsync<ChuckResponse>("/jokes/random");
-        return res?.value ?? "";
-    }
-
-    private async Task<string> GetDadJokeAsync()
-    {
-        var client = _httpFactory.CreateClient("Dad");
-        var res = await client.GetFromJsonAsync<DadResponse>(string.Empty);
-        return res?.joke ?? "";
     }
 } 

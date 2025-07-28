@@ -13,6 +13,7 @@ using Polly.Extensions.Http;
 using JokesApi.Domain.Repositories;
 using JokesApi.Infrastructure;
 using JokesApi.Infrastructure.Repositories;
+using JokesApi.Application.UseCases;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -121,7 +122,11 @@ builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 builder.Services.AddScoped<JokesApi.Application.Ports.IChuckClient, JokesApi.Infrastructure.External.ChuckClient>();
 builder.Services.AddScoped<JokesApi.Application.Ports.IDadClient, JokesApi.Infrastructure.External.DadClient>();
-builder.Services.AddScoped<JokesApi.Application.UseCases.GetCombinedJoke>();
+
+// Register Use Cases
+builder.Services.AddScoped<GetCombinedJoke>();
+builder.Services.AddScoped<GetRandomJoke>();
+builder.Services.AddScoped<GetPairedJokes>();
 
 var app = builder.Build();
 
