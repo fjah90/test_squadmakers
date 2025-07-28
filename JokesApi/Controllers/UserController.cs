@@ -83,33 +83,16 @@ public class UserController : ControllerBase
             refreshToken = pair.RefreshToken
         };
 
-        return CreatedAtAction(nameof(GetCurrentUser), new { }, response);
+        return CreatedAtAction(nameof(GetUserById), new { id = user.Id }, response);
     }
 
-    [Authorize(Roles = "user,admin")]
-    [HttpGet]
-    public async Task<IActionResult> GetCurrentUser()
-    {
-        var userIdStr = User.FindFirst("sub")?.Value;
-        if (!Guid.TryParse(userIdStr, out var userId))
-        {
-            return Unauthorized();
-        }
-
-        var user = await _db.Users.AsNoTracking()
-            .Select(u => new { u.Id, u.Name, u.Email, u.Role })
-            .FirstOrDefaultAsync(u => u.Id == userId);
-
-        return Ok(user);
-    }
-
-    [Authorize(Roles = "admin")]
     /// <summary>
     /// Promotes an existing user to administrator.
     /// </summary>
     /// <param name="id">User ID.</param>
     /// <response code="204">User promoted.</response>
     /// <response code="404">User not found.</response>
+    [Authorize(Roles = "admin")]
     [HttpPost("{id:guid}/promote")]
     public async Task<IActionResult> Promote(Guid id)
     {
@@ -117,6 +100,78 @@ public class UserController : ControllerBase
         if (user is null) return NotFound();
 
         user.Role = "admin";
+        await _db.SaveChangesAsync();
+        return NoContent();
+    }
+
+    /// <summary>
+    /// Returns the list of all registered users. Accessible only to administrators.
+    /// </summary>
+    /// <response code="200">List of users returned.</response>
+    [Authorize(Roles = "admin")]
+    [HttpGet]
+    public async Task<IActionResult> GetAllUsers()
+    {
+        var users = await _db.Users.AsNoTracking()
+            .Select(u => new { u.Id, u.Name, u.Email, u.Role })
+            .ToListAsync();
+        return Ok(users);
+    }
+
+    /// <summary>
+    /// Returns a single user by ID. Accessible only to administrators.
+    /// </summary>
+    /// <param name="id">User ID.</param>
+    /// <response code="200">User data returned.</response>
+    /// <response code="404">User not found.</response>
+    [Authorize(Roles = "admin")]
+    [HttpGet("{id:guid}")]
+    public async Task<IActionResult> GetUserById(Guid id)
+    {
+        var user = await _db.Users.AsNoTracking()
+            .Select(u => new { u.Id, u.Name, u.Email, u.Role })
+            .FirstOrDefaultAsync(u => u.Id == id);
+        return user is null ? NotFound() : Ok(user);
+    }
+
+    /// <summary>
+    /// Deletes an existing user. Only administrators can perform this action.
+    /// </summary>
+    /// <param name="id">User ID.</param>
+    /// <response code="204">User deleted.</response>
+    /// <response code="404">User not found.</response>
+    [Authorize(Roles = "admin")]
+    [HttpDelete("{id:guid}")]
+    public async Task<IActionResult> DeleteUser(Guid id)
+    {
+        var user = await _db.Users.FirstOrDefaultAsync(u => u.Id == id);
+        if (user is null) return NotFound();
+
+        _db.Users.Remove(user);
+        await _db.SaveChangesAsync();
+        return NoContent();
+    }
+
+    public record UpdateUserRequest([Required] string Name, string? Role);
+
+    /// <summary>
+    /// Updates name and/or role of an existing user. Only administrators can perform this action.
+    /// </summary>
+    /// <param name="id">User ID.</param>
+    /// <param name="req">Fields to update.</param>
+    /// <response code="204">User updated.</response>
+    /// <response code="404">User not found.</response>
+    [Authorize(Roles = "admin")]
+    [HttpPut("{id:guid}")]
+    public async Task<IActionResult> UpdateUser(Guid id, [FromBody] UpdateUserRequest req)
+    {
+        var user = await _db.Users.FirstOrDefaultAsync(u => u.Id == id);
+        if (user is null) return NotFound();
+
+        user.Name = req.Name;
+        if (!string.IsNullOrWhiteSpace(req.Role))
+            user.Role = req.Role!.ToLower() == "admin" ? "admin" : "user";
+
         await _db.SaveChangesAsync();
         return NoContent();
     }

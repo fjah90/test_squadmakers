@@ -92,8 +92,22 @@ public class ChistesController : ControllerBase
         {
             var chuck = await GetChuckJokeAsync();
             var dad = await GetDadJokeAsync();
-            var local = await _uow.Jokes.Query.AsNoTracking().OrderBy(r => Guid.NewGuid()).Select(j => j.Text).FirstOrDefaultAsync();
-            var pieces = new[] { chuck.Split('.')[0], dad.Split('.')[0], local?.Split('.')[0] }.Where(s => !string.IsNullOrWhiteSpace(s));
+            var localList = await _uow.Jokes.Query.AsNoTracking()
+                .Select(j => j.Text)
+                .ToListAsync();
+            var local = localList.Count == 0 ? null : localList[Random.Shared.Next(localList.Count)];
+
+            var pieces = new List<string>();
+            if (!string.IsNullOrWhiteSpace(chuck))
+                pieces.Add(chuck.Split('.')[0].Trim());
+            if (!string.IsNullOrWhiteSpace(dad))
+                pieces.Add(dad.Split('.')[0].Trim());
+            if (!string.IsNullOrWhiteSpace(local))
+                pieces.Add(local.Split('.')[0].Trim());
+
+            if (pieces.Count == 0)
+                return StatusCode(500, "No jokes available");
+
             var combined = string.Join(", ", pieces) + ".";
             return Ok(new { combined });
         }

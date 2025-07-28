@@ -8,8 +8,7 @@ namespace JokesApi.Controllers;
 /// </summary>
 [ApiController]
 [Authorize(Roles = "user,admin")]
-[Route("api/math")] // new route
-[Route("api/matematicas")] // legacy route for backward compatibility
+[Route("api/matematicas")] // ruta oficial en español
 public class MathController : ControllerBase
 {
     private readonly ILogger<MathController> _logger;
@@ -45,9 +44,9 @@ public class MathController : ControllerBase
     }
 
     /// <summary>
-    /// Returns the next integer (n + 1).
+    /// Devuelve el siguiente número entero (n + 1).
     /// </summary>
-    [HttpGet("next-number")]
+    [HttpGet("siguiente-numero")]
     public IActionResult NextNumber([FromQuery] int number) => Ok(new { result = number + 1 });
 
     private static long Gcd(long a, long b)

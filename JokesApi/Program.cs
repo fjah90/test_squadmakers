@@ -129,7 +129,11 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
-app.UseHttpsRedirection();
+// Redirect to HTTPS only in non-development environments so local HTTP Swagger works.
+if (!app.Environment.IsDevelopment())
+{
+    app.UseHttpsRedirection();
+}
 
 app.UseMiddleware<JokesApi.Middleware.ErrorHandlingMiddleware>();
 
