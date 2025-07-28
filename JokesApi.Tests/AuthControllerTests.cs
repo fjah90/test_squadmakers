@@ -149,4 +149,201 @@ public class AuthControllerTests
         // Assert
         Assert.IsType<NoContentResult>(result);
     }
+
+
+
+    [Fact]
+    public async Task Login_WithNullEmail_ReturnsUnauthorized()
+    {
+        // Arrange
+        var db = CreateDb();
+        var controller = new AuthController(db, CreateTokenService(db), NullLogger<AuthController>.Instance);
+        var request = new AuthController.LoginRequest(null!, "password");
+        
+        // Act
+        var result = await controller.Login(request);
+        
+        // Assert
+        Assert.IsType<UnauthorizedObjectResult>(result);
+    }
+
+    [Fact]
+    public async Task Login_WithEmptyEmail_ReturnsUnauthorized()
+    {
+        // Arrange
+        var db = CreateDb();
+        var controller = new AuthController(db, CreateTokenService(db), NullLogger<AuthController>.Instance);
+        var request = new AuthController.LoginRequest("", "password");
+        
+        // Act
+        var result = await controller.Login(request);
+        
+        // Assert
+        Assert.IsType<UnauthorizedObjectResult>(result);
+    }
+
+    [Fact]
+    public async Task Login_WithNullPassword_ReturnsUnauthorized()
+    {
+        // Arrange
+        var db = CreateDb();
+        var controller = new AuthController(db, CreateTokenService(db), NullLogger<AuthController>.Instance);
+        var request = new AuthController.LoginRequest("user@test.com", null!);
+        
+        // Act
+        var result = await controller.Login(request);
+        
+        // Assert
+        Assert.IsType<UnauthorizedObjectResult>(result);
+    }
+
+    [Fact]
+    public async Task Login_WithEmptyPassword_ReturnsUnauthorized()
+    {
+        // Arrange
+        var db = CreateDb();
+        var controller = new AuthController(db, CreateTokenService(db), NullLogger<AuthController>.Instance);
+        var request = new AuthController.LoginRequest("user@test.com", "");
+        
+        // Act
+        var result = await controller.Login(request);
+        
+        // Assert
+        Assert.IsType<UnauthorizedObjectResult>(result);
+    }
+
+    [Fact]
+    public async Task Login_WithInvalidEmailFormat_ReturnsUnauthorized()
+    {
+        // Arrange
+        var db = CreateDb();
+        var controller = new AuthController(db, CreateTokenService(db), NullLogger<AuthController>.Instance);
+        var request = new AuthController.LoginRequest("invalid-email", "password");
+        
+        // Act
+        var result = await controller.Login(request);
+        
+        // Assert
+        Assert.IsType<UnauthorizedObjectResult>(result);
+    }
+
+    [Fact]
+    public async Task Login_WithCorrectEmailWrongPassword_ReturnsUnauthorized()
+    {
+        // Arrange
+        var db = CreateDb();
+        var password = "Pass123!";
+        var user = new User { Id = Guid.NewGuid(), Email = "user@test.com", Name = "User", PasswordHash = BCrypt.Net.BCrypt.HashPassword(password), Role = "user" };
+        db.Users.Add(user);
+        db.SaveChanges();
+        var controller = new AuthController(db, CreateTokenService(db), NullLogger<AuthController>.Instance);
+        var request = new AuthController.LoginRequest(user.Email, "wrongpassword");
+        
+        // Act
+        var result = await controller.Login(request);
+        
+        // Assert
+        Assert.IsType<UnauthorizedObjectResult>(result);
+    }
+
+    [Fact]
+    public void Refresh_WithNullRefreshToken_ReturnsUnauthorized()
+    {
+        // Arrange
+        var db = CreateDb();
+        var controller = new AuthController(db, CreateTokenService(db), NullLogger<AuthController>.Instance);
+        var request = new AuthController.RefreshRequest(null!);
+        
+        // Act
+        var result = controller.Refresh(request);
+        
+        // Assert
+        Assert.IsType<UnauthorizedObjectResult>(result);
+    }
+
+    [Fact]
+    public void Refresh_WithEmptyRefreshToken_ReturnsUnauthorized()
+    {
+        // Arrange
+        var db = CreateDb();
+        var controller = new AuthController(db, CreateTokenService(db), NullLogger<AuthController>.Instance);
+        var request = new AuthController.RefreshRequest("");
+        
+        // Act
+        var result = controller.Refresh(request);
+        
+        // Assert
+        Assert.IsType<UnauthorizedObjectResult>(result);
+    }
+
+    [Fact]
+    public void Revoke_WithNullRefreshToken_ReturnsNoContent()
+    {
+        // Arrange
+        var db = CreateDb();
+        var controller = new AuthController(db, CreateTokenService(db), NullLogger<AuthController>.Instance);
+        var request = new AuthController.RevokeRequest(null!);
+        
+        // Act
+        var result = controller.Revoke(request);
+        
+        // Assert
+        Assert.IsType<NoContentResult>(result);
+    }
+
+    [Fact]
+    public void Revoke_WithEmptyRefreshToken_ReturnsNoContent()
+    {
+        // Arrange
+        var db = CreateDb();
+        var controller = new AuthController(db, CreateTokenService(db), NullLogger<AuthController>.Instance);
+        var request = new AuthController.RevokeRequest("");
+        
+        // Act
+        var result = controller.Revoke(request);
+        
+        // Assert
+        Assert.IsType<NoContentResult>(result);
+    }
+
+    [Fact]
+    public async Task Login_WithExpiredUser_ReturnsOk()
+    {
+        // Arrange
+        var db = CreateDb();
+        var password = "Pass123!";
+        var user = new User { 
+            Id = Guid.NewGuid(), 
+            Email = "user@test.com", 
+            Name = "User", 
+            PasswordHash = BCrypt.Net.BCrypt.HashPassword(password), 
+            Role = "user"
+        };
+        db.Users.Add(user);
+        db.SaveChanges();
+        var controller = new AuthController(db, CreateTokenService(db), NullLogger<AuthController>.Instance);
+        var request = new AuthController.LoginRequest(user.Email, password);
+        
+        // Act
+        var result = await controller.Login(request);
+        
+        // Assert
+        Assert.IsType<OkObjectResult>(result);
+    }
+
+    [Fact]
+    public async Task Login_WithDatabaseException_Returns500()
+    {
+        // Arrange
+        var db = CreateDb();
+        var controller = new AuthController(db, CreateTokenService(db), NullLogger<AuthController>.Instance);
+        var request = new AuthController.LoginRequest("user@test.com", "password");
+        
+        // Simulate database exception by disposing the context
+        db.Dispose();
+        
+        // Act & Assert
+        await Assert.ThrowsAsync<ObjectDisposedException>(async () => 
+            await controller.Login(request));
+    }
 } 

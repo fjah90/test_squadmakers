@@ -196,4 +196,58 @@ public class ControllerTests
         var okResult = Assert.IsType<OkObjectResult>(result);
         Assert.Equal(42, okResult.Value);
     }
+
+    [Fact]
+    public void MathController_NextNumber_ReturnsPlusOne()
+    {
+        // Arrange
+        var loggerMock = new Mock<ILogger<MathController>>();
+        var controller = new MathController(loggerMock.Object);
+
+        // Act
+        var result = controller.NextNumber(5);
+
+        // Assert
+        var okResult = Assert.IsType<OkObjectResult>(result);
+        var response = okResult.Value;
+        var resultProperty = response.GetType().GetProperty("result");
+        Assert.NotNull(resultProperty);
+        Assert.Equal(6, resultProperty.GetValue(response));
+    }
+
+    [Fact]
+    public void MathController_NextNumber_WithZero_ReturnsOne()
+    {
+        // Arrange
+        var loggerMock = new Mock<ILogger<MathController>>();
+        var controller = new MathController(loggerMock.Object);
+
+        // Act
+        var result = controller.NextNumber(0);
+
+        // Assert
+        var okResult = Assert.IsType<OkObjectResult>(result);
+        var response = okResult.Value;
+        var resultProperty = response.GetType().GetProperty("result");
+        Assert.NotNull(resultProperty);
+        Assert.Equal(1, resultProperty.GetValue(response));
+    }
+
+    [Fact]
+    public void MathController_NextNumber_WithNegativeNumber_ReturnsPlusOne()
+    {
+        // Arrange
+        var loggerMock = new Mock<ILogger<MathController>>();
+        var controller = new MathController(loggerMock.Object);
+
+        // Act
+        var result = controller.NextNumber(-5);
+
+        // Assert
+        var okResult = Assert.IsType<OkObjectResult>(result);
+        var response = okResult.Value;
+        var resultProperty = response.GetType().GetProperty("result");
+        Assert.NotNull(resultProperty);
+        Assert.Equal(-4, resultProperty.GetValue(response));
+    }
 } 
