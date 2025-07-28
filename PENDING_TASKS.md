@@ -14,7 +14,8 @@
 - [x] Añadir tests de integración para:
   - Endpoints de **Usuarios** (`GET/PUT/DELETE`)
   - Endpoints de **Chistes** (`Create`, `Filter`, `Delete`, `Combined` happy-path)
-- [ ] Ejecutar `dotnet test` con coverlet y verificar porcentaje.
+- [x] Ejecutar `dotnet test` con coverlet y verificar porcentaje.
+  - Cobertura actual: 42.07% (se necesita mejorar para llegar al 90%)
 
 ## 3. Refresh Tokens completo
 - [ ] Endpoint `POST /api/auth/refresh` (ya existe) → agregar pruebas.
