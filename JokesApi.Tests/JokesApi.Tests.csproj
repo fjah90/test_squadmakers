@@ -9,10 +9,7 @@
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
-    <PackageReference Include="coverlet.collector" Version="6.0.4">
-      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-      <PrivateAssets>all</PrivateAssets>
-    </PackageReference>
+    <PackageReference Include="Microsoft.AspNetCore.Authentication.OAuth" Version="2.3.0" />
     <PackageReference Include="Microsoft.AspNetCore.Mvc.Testing" Version="8.0.7" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.12.0" />
     <PackageReference Include="xunit" Version="2.9.2" />
@@ -28,13 +25,7 @@
   <PropertyGroup>
     <CollectCoverage>true</CollectCoverage>
     <CoverletOutputFormat>cobertura</CoverletOutputFormat>
-    <Include>
-      [JokesApi.Application]*;
-      [JokesApi.Domain]*;
-    </Include>
-    <Exclude>
-      [JokesApi]*;
-      [JokesApi.Tests]*;
-    </Exclude>
+    <Include>[JokesApi.Application*]*,[JokesApi.Domain*]*</Include>
+    <ExcludeByFile>**/*.Designer.cs</ExcludeByFile>
   </PropertyGroup>
 </Project> 

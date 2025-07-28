@@ -54,7 +54,7 @@ public class ChistesFilterUnitTests
     public async Task Filter_ByMinWords_Returns_Long_Joke_Only()
     {
         var (controller, _, _) = CreateControllerWithData();
-        var result = await controller.Filter(minPalabras:6, contiene:null, autorId:null, tematicaId:null) as OkObjectResult;
+        var result = await controller.Filter(6, null, null, null) as OkObjectResult;
         Assert.NotNull(result);
         var list = result!.Value as IEnumerable<object>;
         Assert.Single(list!);

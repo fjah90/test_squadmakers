@@ -47,6 +47,16 @@ public class InfrastructureTests
     }
 
     [Fact]
+    public async Task UnitOfWork_SaveAsync_PersistsChanges()
+    {
+        var context=CreateContext();
+        var uow=new UnitOfWork(context);
+        context.Users.Add(new User{Id=Guid.NewGuid(),Email="unit@test.com",Name="U",PasswordHash="h",Role="user"});
+        var affected=await uow.SaveAsync();
+        Assert.Equal(1,affected);
+    }
+
+    [Fact]
     public async Task JokeRepository_Query_ReturnsAllJokes()
     {
         // Arrange
